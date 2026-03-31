@@ -10,7 +10,31 @@ permissions:
 
 jobs:
 
-  build-mac:
+  build-mac-legacy:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install Electron 22 for legacy Mac
+        run: npm install electron@22 --save-dev
+      - name: Build Mac Legacy
+        run: npm run build:mac
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Rename legacy builds
+        run: |
+          cd dist
+          for f in *.dmg; do mv "$f" "${f%.dmg}-legacy.dmg"; done
+      - name: Upload legacy Mac build
+        uses: softprops/action-gh-release@v1
+        with:
+          files: dist/*-legacy.dmg
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-mac-modern:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
@@ -19,11 +43,11 @@ jobs:
           node-version: '20'
       - name: Install dependencies
         run: npm install
-      - name: Build Mac
+      - name: Build Mac Modern
         run: npm run build:mac
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload to GitHub Release
+      - name: Upload modern Mac build
         uses: softprops/action-gh-release@v1
         with:
           files: dist/*.dmg
