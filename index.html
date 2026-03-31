@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Threshold</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div id="shell">
+
+    <!-- Tab Bar -->
+    <div id="tab-bar">
+      <div id="tab-bar-inner">
+        <div id="tabs-scroll">
+          <div id="tabs-container"></div>
+        </div>
+        <button id="new-tab-btn" title="New tab">+</button>
+      </div>
+
+      <!-- Windows/Linux custom window controls -->
+      <div id="win-controls" class="win-only">
+        <button class="wc-btn" id="wc-min" title="Minimize">&#8211;</button>
+        <button class="wc-btn" id="wc-max" title="Maximize">&#9633;</button>
+        <button class="wc-btn wc-close" id="wc-close" title="Close">&#10005;</button>
+      </div>
+    </div>
+
+    <!-- Navigation Bar -->
+    <div id="nav-bar">
+      <button class="nav-btn" id="back-btn"   title="Back (Alt+Left)">&#8592;</button>
+      <button class="nav-btn" id="forward-btn" title="Forward (Alt+Right)">&#8594;</button>
+      <button class="nav-btn" id="reload-btn"  title="Reload (Ctrl+R)">&#8635;</button>
+
+      <div id="address-wrap">
+        <span id="security-icon" title="Connection security">&#128274;</span>
+        <input id="address-bar" type="text" placeholder="Search or enter address…" spellcheck="false" autocomplete="off" />
+      </div>
+
+      <button class="nav-btn" id="home-btn" title="Home">&#8962;</button>
+    </div>
+
+    <!-- Webview Container -->
+    <div id="content-area">
+      <!-- Webviews injected here by browser.js -->
+      <!-- New Tab Page -->
+      <div id="new-tab-page">
+        <div class="nt-logo">THRESHOLD</div>
+        <div class="nt-tagline">Your browser. Your rules. Your land.</div>
+        <div class="nt-search-wrap">
+          <input id="nt-search" type="text" placeholder="Search DuckDuckGo or enter address…" spellcheck="false" autocomplete="off" />
+        </div>
+        <div class="nt-gc-label">Global Crossover</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="browser.js"></script>
+</body>
+</html>
