@@ -1,4 +1,4 @@
-/* Threshold Browser v1.1 — Lit Door Design Language
+css/* Threshold Browser v1.1 — Lit Door Design Language
    Global Crossover */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -51,7 +51,8 @@ html, body {
   height: var(--tab-h);
   flex-shrink: 0;
   -webkit-app-region: drag;
-  padding-left: 80px; /* macOS traffic lights */
+  padding-left: 80px;
+  overflow: visible;
 }
 
 body.win32 #tab-bar,
@@ -64,12 +65,17 @@ body.linux #tab-bar { padding-left: 8px; }
   align-items: flex-end;
   -webkit-flex: 1;
   flex: 1;
+  min-width: 0;
   height: 100%;
-  overflow: hidden;
+  overflow-x: auto;
+  overflow-y: visible;
   padding: 4px 4px 0;
   gap: 2px;
   -webkit-app-region: no-drag;
+  scrollbar-width: none;
 }
+
+#tab-bar-inner::-webkit-scrollbar { display: none; }
 
 /* Individual Tab */
 .tab {
@@ -83,9 +89,9 @@ body.linux #tab-bar { padding-left: 8px; }
   border-radius: 7px 7px 0 0;
   cursor: pointer;
   max-width: 200px;
-  min-width: 80px;
-  -webkit-flex-shrink: 1;
-  flex-shrink: 1;
+  min-width: 100px;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
   color: var(--text-muted);
   background: transparent;
   border: 1px solid transparent;
@@ -322,7 +328,6 @@ webview.active { display: -webkit-flex; display: flex; }
   pointer-events: none;
 }
 
-/* ── Shine Animation ── */
 @-webkit-keyframes threshold-shine {
   0%   { background-position: -200% center; }
   100% { background-position: 200% center; }
