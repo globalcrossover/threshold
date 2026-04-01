@@ -2,30 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https:; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;">
   <title>Threshold</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
 <div id="shell">
 
+  <!-- macOS title bar drag region -->
   <div id="title-bar"></div>
 
+  <!-- Nav Bar -->
   <div id="nav-bar">
-    <button class="nav-btn" id="back-btn"    title="Back">&#8592;</button>
+    <button class="nav-btn" id="back-btn" title="Back">&#8592;</button>
     <button class="nav-btn" id="forward-btn" title="Forward">&#8594;</button>
-    <button class="nav-btn" id="reload-btn"  title="Reload">&#8635;</button>
+    <button class="nav-btn" id="reload-btn" title="Reload">&#8635;</button>
 
     <div id="address-wrap">
       <span id="security-icon">&#128274;</span>
       <input id="address-bar" type="text" placeholder="Search or enter address…" spellcheck="false" autocomplete="off" />
     </div>
 
+    <button class="nav-btn" id="bookmark-btn" title="Bookmark this page">&#9733;</button>
     <button class="nav-btn" id="home-btn" title="Home">&#8962;</button>
 
+    <!-- Windows/Linux controls -->
     <div id="win-controls">
       <button class="wc-btn" id="wc-min">&#8211;</button>
       <button class="wc-btn" id="wc-max">&#9633;</button>
@@ -33,80 +34,106 @@
     </div>
   </div>
 
+  <!-- Content Area -->
   <div id="content-area">
 
+    <!-- Home Page -->
     <div id="home-page" class="visible">
 
+      <!-- Ambient glow -->
+      <div id="ambient-glow"></div>
+
+      <!-- Branding -->
+      <div id="branding">
+        <div id="threshold-logo">THRESHOLD</div>
+        <div id="threshold-tagline">Built by Global Crossover &nbsp;·&nbsp; Powered by God</div>
+      </div>
+
+      <!-- Search -->
       <div id="home-search-wrap">
         <span id="home-search-icon">&#9906;</span>
         <input id="home-search" type="text" placeholder="Search or enter address…" spellcheck="false" autocomplete="off" />
       </div>
 
+      <!-- Card Grid -->
       <div id="card-grid">
 
         <div class="brand-card" data-url="https://knockknock.email">
-          <div class="card-icon">✉️</div>
+          <div class="card-icon">&#9993;</div>
           <div class="card-name">Knock Knock</div>
           <div class="card-tagline">One knock. Every world.</div>
         </div>
 
         <div class="brand-card" data-url="https://seeface.app">
-          <div class="card-icon">👁</div>
+          <div class="card-icon">&#128065;</div>
           <div class="card-name">Seeface</div>
           <div class="card-tagline">Your command centre.</div>
         </div>
 
         <div class="brand-card" data-url="https://truthnet.news">
-          <div class="card-icon">📡</div>
+          <div class="card-icon">&#128225;</div>
           <div class="card-name">Truth Net</div>
           <div class="card-tagline">News you can trust.</div>
         </div>
 
         <div class="brand-card" data-url="https://sonify.stream">
-          <div class="card-icon">🎵</div>
+          <div class="card-icon">&#9835;</div>
           <div class="card-name">Sonify</div>
           <div class="card-tagline">Music reimagined.</div>
         </div>
 
         <div class="brand-card" data-url="https://mydogames.com">
-          <div class="card-icon">🎮</div>
+          <div class="card-icon">&#127918;</div>
           <div class="card-name">Mydo Games</div>
           <div class="card-tagline">Play your world.</div>
         </div>
 
         <div class="brand-card" data-url="https://makeavid.com">
-          <div class="card-icon">🎬</div>
+          <div class="card-icon">&#127916;</div>
           <div class="card-name">Make A Vid</div>
           <div class="card-tagline">AI music videos.</div>
         </div>
 
         <div class="brand-card" data-url="https://oathtracker.com">
-          <div class="card-icon">⚡</div>
+          <div class="card-icon">&#9889;</div>
           <div class="card-name">Oath Tracker</div>
           <div class="card-tagline">Keep your word.</div>
         </div>
 
         <div class="brand-card" data-url="https://claude.ai">
-          <div class="card-icon">✦</div>
+          <div class="card-icon">&#10022;</div>
           <div class="card-name">Claude</div>
           <div class="card-tagline">Your AI assistant.</div>
         </div>
 
         <div class="brand-card gc" data-url="https://globalcrossover.com">
-          <div class="card-icon">🌐</div>
+          <div class="card-icon">&#127758;</div>
           <div class="card-name">Global Crossover</div>
           <div class="card-tagline">The mothership.</div>
         </div>
 
       </div>
 
-      <div id="home-wordmark">Threshold &nbsp;·&nbsp; A browser by Global Crossover</div>
+      <!-- Bookmarks Bar -->
+      <div id="bookmarks-section">
+        <div id="bookmarks-header">
+          <span id="bookmarks-label">Bookmarks</span>
+          <div id="bookmarks-line"></div>
+          <button id="add-bookmark-btn">+ Add</button>
+        </div>
+        <div id="bookmarks-list">
+          <!-- Populated by browser.js from localStorage -->
+        </div>
+      </div>
 
-    </div>
+      <!-- Footer -->
+      <div id="home-footer">Threshold &nbsp;·&nbsp; A browser by Global Crossover</div>
 
-  </div>
+    </div><!-- /home-page -->
 
-</div>
+  </div><!-- /content-area -->
+
+</div><!-- /shell -->
 
 <script src="browser.js"></script>
 </body>
