@@ -2,59 +2,112 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https:; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;">
   <title>Threshold</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap">
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <div id="shell">
+<div id="shell">
 
-    <!-- Tab Bar -->
-    <div id="tab-bar">
-      <div id="tab-bar-inner">
-        <div id="tabs-scroll">
-          <div id="tabs-container"></div>
-        </div>
-        <button id="new-tab-btn" title="New tab">+</button>
-      </div>
+  <div id="title-bar"></div>
 
-      <!-- Windows/Linux custom window controls -->
-      <div id="win-controls" class="win-only">
-        <button class="wc-btn" id="wc-min" title="Minimize">&#8211;</button>
-        <button class="wc-btn" id="wc-max" title="Maximize">&#9633;</button>
-        <button class="wc-btn wc-close" id="wc-close" title="Close">&#10005;</button>
-      </div>
+  <div id="nav-bar">
+    <button class="nav-btn" id="back-btn"    title="Back">&#8592;</button>
+    <button class="nav-btn" id="forward-btn" title="Forward">&#8594;</button>
+    <button class="nav-btn" id="reload-btn"  title="Reload">&#8635;</button>
+
+    <div id="address-wrap">
+      <span id="security-icon">&#128274;</span>
+      <input id="address-bar" type="text" placeholder="Search or enter address…" spellcheck="false" autocomplete="off" />
     </div>
 
-    <!-- Navigation Bar -->
-    <div id="nav-bar">
-      <button class="nav-btn" id="back-btn"    title="Back">&#8592;</button>
-      <button class="nav-btn" id="forward-btn" title="Forward">&#8594;</button>
-      <button class="nav-btn" id="reload-btn"  title="Reload">&#8635;</button>
+    <button class="nav-btn" id="home-btn" title="Home">&#8962;</button>
 
-      <div id="address-wrap">
-        <span id="security-icon" title="Connection security">&#128274;</span>
-        <input id="address-bar" type="text" placeholder="Search or enter address…" spellcheck="false" autocomplete="off" />
-      </div>
-
-      <button class="nav-btn" id="home-btn" title="Home">&#8962;</button>
+    <div id="win-controls">
+      <button class="wc-btn" id="wc-min">&#8211;</button>
+      <button class="wc-btn" id="wc-max">&#9633;</button>
+      <button class="wc-btn wc-close" id="wc-close">&#10005;</button>
     </div>
+  </div>
 
-    <!-- Webview Container -->
-    <div id="content-area">
-      <div id="new-tab-page">
-        <div class="nt-logo">THRESHOLD</div>
-        <div class="nt-tagline">Your browser. Your rules. Your land.</div>
-        <div class="nt-search-wrap">
-          <input id="nt-search" type="text" placeholder="Search or enter address…" spellcheck="false" autocomplete="off" />
-        </div>
-        <div class="nt-gc-label">Global Crossover</div>
+  <div id="content-area">
+
+    <div id="home-page" class="visible">
+
+      <div id="home-search-wrap">
+        <span id="home-search-icon">&#9906;</span>
+        <input id="home-search" type="text" placeholder="Search or enter address…" spellcheck="false" autocomplete="off" />
       </div>
+
+      <div id="card-grid">
+
+        <div class="brand-card" data-url="https://knockknock.email">
+          <div class="card-icon">✉️</div>
+          <div class="card-name">Knock Knock</div>
+          <div class="card-tagline">One knock. Every world.</div>
+        </div>
+
+        <div class="brand-card" data-url="https://seeface.app">
+          <div class="card-icon">👁</div>
+          <div class="card-name">Seeface</div>
+          <div class="card-tagline">Your command centre.</div>
+        </div>
+
+        <div class="brand-card" data-url="https://truthnet.news">
+          <div class="card-icon">📡</div>
+          <div class="card-name">Truth Net</div>
+          <div class="card-tagline">News you can trust.</div>
+        </div>
+
+        <div class="brand-card" data-url="https://sonify.stream">
+          <div class="card-icon">🎵</div>
+          <div class="card-name">Sonify</div>
+          <div class="card-tagline">Music reimagined.</div>
+        </div>
+
+        <div class="brand-card" data-url="https://mydogames.com">
+          <div class="card-icon">🎮</div>
+          <div class="card-name">Mydo Games</div>
+          <div class="card-tagline">Play your world.</div>
+        </div>
+
+        <div class="brand-card" data-url="https://makeavid.com">
+          <div class="card-icon">🎬</div>
+          <div class="card-name">Make A Vid</div>
+          <div class="card-tagline">AI music videos.</div>
+        </div>
+
+        <div class="brand-card" data-url="https://oathtracker.com">
+          <div class="card-icon">⚡</div>
+          <div class="card-name">Oath Tracker</div>
+          <div class="card-tagline">Keep your word.</div>
+        </div>
+
+        <div class="brand-card" data-url="https://claude.ai">
+          <div class="card-icon">✦</div>
+          <div class="card-name">Claude</div>
+          <div class="card-tagline">Your AI assistant.</div>
+        </div>
+
+        <div class="brand-card gc" data-url="https://globalcrossover.com">
+          <div class="card-icon">🌐</div>
+          <div class="card-name">Global Crossover</div>
+          <div class="card-tagline">The mothership.</div>
+        </div>
+
+      </div>
+
+      <div id="home-wordmark">Threshold &nbsp;·&nbsp; A browser by Global Crossover</div>
+
     </div>
 
   </div>
 
-  <script src="browser.js"></script>
+</div>
+
+<script src="browser.js"></script>
 </body>
 </html>
