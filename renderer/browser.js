@@ -7,7 +7,6 @@ var SEARCH_URL = 'https://duckduckgo.com/?q='
 var HOME       = 'threshold://home'
 var BM_KEY     = 'threshold_bookmarks_v1'
 
-// ── DOM ──────────────────────────────────────────────
 var $contentArea   = document.getElementById('content-area')
 var $tabsContainer = document.getElementById('tabs-container')
 var $newTabBtn     = document.getElementById('new-tab-btn')
@@ -19,16 +18,14 @@ var $reloadBtn     = document.getElementById('reload-btn')
 var $homeBtn       = document.getElementById('home-btn')
 var $bookmarkBtn   = document.getElementById('bookmark-btn')
 
-// ── Tab State ─────────────────────────────────────────
-var tabs      = []   // [{ id, url, title, favicon, loading, webview, homePage }]
+var tabs      = []
 var activeId  = null
 var tabSeq    = 0
 var bookmarks = []
 
 function uid() { return 'tab_' + (++tabSeq) }
-function getTab(id) { var t; for (var i=0;i<tabs.length;i++) { if (tabs[i].id===id) { t=tabs[i]; break; } } return t; }
+function getTab(id) { for (var i=0;i<tabs.length;i++) { if (tabs[i].id===id) return tabs[i] } return null }
 
-// ── URL helpers ────────────────────────────────────────
 function resolveUrl(raw) {
   var s = (raw || '').trim()
   if (!s || s === HOME) return HOME
@@ -39,18 +36,15 @@ function resolveUrl(raw) {
 
 function isHome(url) { return !url || url === HOME }
 
-// ── Create Tab ─────────────────────────────────────────
 function createTab(url, activate) {
-  var id      = uid()
+  var id       = uid()
   var resolved = resolveUrl(url || HOME)
 
-  // Clone home page from template
   var tpl      = document.getElementById('home-page-template').children[0]
   var homePage = tpl.cloneNode(true)
   homePage.classList.remove('active')
   $contentArea.appendChild(homePage)
 
-  // Wire up home page cards
   var cards = homePage.querySelectorAll('.brand-card')
   for (var c = 0; c < cards.length; c++) {
     (function(card) {
@@ -61,7 +55,6 @@ function createTab(url, activate) {
     })(cards[c])
   }
 
-  // Wire up home search
   var hs = homePage.querySelector('.home-search')
   hs.addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
@@ -70,20 +63,15 @@ function createTab(url, activate) {
     }
   })
 
-  // Wire up + Add bookmark button on home page
   var addBmBtn = homePage.querySelector('.add-bookmark-btn')
   addBmBtn.addEventListener('click', function() { openBookmarkModal('', '') })
 
-  // Render bookmarks inside this home page
   renderBookmarksInHome(homePage)
 
   var tab = { id: id, url: resolved, title: 'New Tab', favicon: null, loading: false, webview: null, homePage: homePage }
   tabs.push(tab)
 
-  if (!isHome(resolved)) {
-    createWebview(tab)
-  }
-
+  if (!isHome(resolved)) createWebview(tab)
   if (activate !== false) activateTab(id)
   renderTabBar()
   return id
@@ -156,13 +144,11 @@ function domain(url) {
   catch(e) { return url }
 }
 
-// ── Activate Tab ───────────────────────────────────────
 function activateTab(id) {
   activeId = id
   var tab  = getTab(id)
   if (!tab) return
 
-  // Hide all
   var views = document.querySelectorAll('webview')
   for (var i = 0; i < views.length; i++) views[i].classList.remove('active')
   var homes = document.querySelectorAll('.home-page')
@@ -185,17 +171,16 @@ function activateTab(id) {
   renderTabBar()
 }
 
-// ── Navigate ───────────────────────────────────────────
 function navigateTab(id, raw) {
   var tab = getTab(id)
   if (!tab) return
   var url = resolveUrl(raw)
 
   if (isHome(url)) {
-    tab.url   = HOME
-    tab.title = 'New Tab'
+    tab.url     = HOME
+    tab.title   = 'New Tab'
     tab.favicon = null
-    if (tab.webview) { tab.webview.classList.remove('active') }
+    if (tab.webview) tab.webview.classList.remove('active')
     tab.homePage.classList.add('active')
     if (id === activeId) {
       $addressBar.value = ''
@@ -223,13 +208,13 @@ function navigateTab(id, raw) {
   }
 }
 
-// ── Close Tab ──────────────────────────────────────────
 function closeTab(id) {
   if (tabs.length === 1) {
-    // Last tab — open a fresh one instead of closing
     var newId = createTab(HOME, false)
     activateTab(newId)
     cleanupTab(id)
+    tabs.splice(0, 1)
+    renderTabBar()
     return
   }
 
@@ -251,46 +236,44 @@ function closeTab(id) {
 function cleanupTab(id) {
   var tab = getTab(id)
   if (!tab) return
-  if (tab.webview) tab.webview.parentNode && tab.webview.parentNode.removeChild(tab.webview)
-  if (tab.homePage) tab.homePage.parentNode && tab.homePage.parentNode.removeChild(tab.homePage)
+  if (tab.webview && tab.webview.parentNode) tab.webview.parentNode.removeChild(tab.webview)
+  if (tab.homePage && tab.homePage.parentNode) tab.homePage.parentNode.removeChild(tab.homePage)
 }
 
-// ── Render Tab Bar ─────────────────────────────────────
 function renderTabBar() {
   $tabsContainer.innerHTML = ''
 
   for (var i = 0; i < tabs.length; i++) {
-    (function(tab) {
+    (function(t) {
       var el = document.createElement('div')
-      el.className = 'tab' + (tab.id === activeId ? ' active' : '') + (tab.loading ? ' loading' : '')
+      el.className = 'tab' + (t.id === activeId ? ' active' : '') + (t.loading ? ' loading' : '')
 
-      // Favicon
       var fav = document.createElement('img')
-      fav.className = 'tab-favicon' + (tab.favicon ? '' : ' hidden')
-      if (tab.favicon) { fav.src = tab.favicon; fav.onerror = function() { fav.classList.add('hidden') } }
+      fav.className = 'tab-favicon' + (t.favicon ? '' : ' hidden')
+      if (t.favicon) {
+        fav.src = t.favicon
+        fav.onerror = function() { fav.classList.add('hidden') }
+      }
 
-      // Title
       var ttl = document.createElement('span')
       ttl.className   = 'tab-title'
-      ttl.textContent = tab.loading ? 'Loading\u2026' : (tab.title || domain(tab.url) || 'New Tab')
+      ttl.textContent = t.loading ? 'Loading\u2026' : (t.title || domain(t.url) || 'New Tab')
 
-      // Close
       var cls = document.createElement('button')
-      cls.className   = 'tab-close'
-      cls.innerHTML   = '&#10005;'
-      cls.addEventListener('click', function(e) { e.stopPropagation(); closeTab(tab.id) })
+      cls.className = 'tab-close'
+      cls.innerHTML = '&#10005;'
+      cls.addEventListener('click', function(e) { e.stopPropagation(); closeTab(t.id) })
 
       el.appendChild(fav)
       el.appendChild(ttl)
       el.appendChild(cls)
-      el.addEventListener('click', function() { activateTab(tab.id) })
+      el.addEventListener('click', function() { activateTab(t.id) })
 
       $tabsContainer.appendChild(el)
     })(tabs[i])
   }
 }
 
-// ── Nav helpers ────────────────────────────────────────
 function setButtons(back, forward) {
   $backBtn.disabled    = !back
   $forwardBtn.disabled = !forward
@@ -298,11 +281,10 @@ function setButtons(back, forward) {
 
 function setSecurityIcon(url) {
   if (!url || isHome(url)) { $securityIcon.innerHTML = ''; return }
-  $securityIcon.innerHTML = url.startsWith('https://') ? '&#128274;' : '&#9888;'
+  $securityIcon.innerHTML    = url.startsWith('https://') ? '&#128274;' : '&#9888;'
   $securityIcon.style.opacity = url.startsWith('https://') ? '0.6' : '0.9'
 }
 
-// ── Bookmarks ──────────────────────────────────────────
 function loadBookmarks() {
   try {
     var raw = localStorage.getItem(BM_KEY)
@@ -310,11 +292,11 @@ function loadBookmarks() {
   } catch(e) { bookmarks = [] }
   if (!bookmarks || bookmarks.length === 0) {
     bookmarks = [
-      { type:'folder', name:'Work',      icon:'📁' },
-      { type:'folder', name:'Research',  icon:'📁' },
-      { type:'link',   name:'The Quran', url:'https://themajesticreading.com', icon:'🔗' },
-      { type:'link',   name:'GC Admin',  url:'https://globalcrossover.com/admin', icon:'🔗' },
-      { type:'link',   name:'Make A Vid',url:'https://makeavid.com', icon:'🔗' },
+      { type:'folder', name:'Work',       icon:'\uD83D\uDCC1' },
+      { type:'folder', name:'Research',   icon:'\uD83D\uDCC1' },
+      { type:'link',   name:'The Quran',  url:'https://themajesticreading.com',      icon:'\uD83D\uDD17' },
+      { type:'link',   name:'GC Admin',   url:'https://globalcrossover.com/admin',   icon:'\uD83D\uDD17' },
+      { type:'link',   name:'Make A Vid', url:'https://makeavid.com',                icon:'\uD83D\uDD17' },
     ]
     saveBookmarks()
   }
@@ -352,12 +334,11 @@ function renderAllHomeBookmarks() {
 }
 
 function addBookmark(name, url) {
-  bookmarks.push({ type:'link', name:name, url:url, icon:'🔗' })
+  bookmarks.push({ type:'link', name:name, url:url, icon:'\uD83D\uDD17' })
   saveBookmarks()
   renderAllHomeBookmarks()
 }
 
-// ── Bookmark Modal ─────────────────────────────────────
 function openBookmarkModal(prefillUrl, prefillName) {
   var existing = document.getElementById('bm-modal-bg')
   if (existing) existing.parentNode.removeChild(existing)
@@ -369,14 +350,13 @@ function openBookmarkModal(prefillUrl, prefillName) {
     '<div id="bm-modal">' +
     '<h3>Save Bookmark</h3>' +
     '<input id="bm-name-input" type="text" placeholder="Name" value="' + (prefillName || '') + '" />' +
-    '<input id="bm-url-input"  type="text" placeholder="https://" value="' + (prefillUrl || '') + '" />' +
+    '<input id="bm-url-input" type="text" placeholder="https://" value="' + (prefillUrl || '') + '" />' +
     '<div id="bm-modal-btns">' +
     '<button class="modal-btn" id="bm-cancel">Cancel</button>' +
     '<button class="modal-btn primary" id="bm-save">Save</button>' +
     '</div></div>'
 
   $contentArea.appendChild(bg)
-
   bg.addEventListener('click', function(e) { if (e.target === bg) closeBmModal() })
   document.getElementById('bm-cancel').addEventListener('click', closeBmModal)
   document.getElementById('bm-save').addEventListener('click', function() {
@@ -392,7 +372,6 @@ function closeBmModal() {
   if (el) el.parentNode.removeChild(el)
 }
 
-// ── Event Listeners ────────────────────────────────────
 $addressBar.addEventListener('keydown', function(e) {
   if (e.key === 'Enter') {
     var tab = getTab(activeId)
@@ -430,7 +409,7 @@ $homeBtn.addEventListener('click', function() {
 })
 
 $bookmarkBtn.addEventListener('click', function() {
-  var tab = getTab(activeId)
+  var tab   = getTab(activeId)
   var url   = (tab && !isHome(tab.url)) ? tab.url : ''
   var title = (tab && tab.title && tab.title !== 'New Tab') ? tab.title : ''
   openBookmarkModal(url, title)
@@ -438,7 +417,6 @@ $bookmarkBtn.addEventListener('click', function() {
 
 $newTabBtn.addEventListener('click', function() { createTab(HOME, true) })
 
-// Win controls
 var wcMin = document.getElementById('wc-min')
 var wcMax = document.getElementById('wc-max')
 var wcCls = document.getElementById('wc-close')
@@ -446,7 +424,6 @@ if (wcMin) wcMin.addEventListener('click', function() { if(window.threshold) win
 if (wcMax) wcMax.addEventListener('click', function() { if(window.threshold) window.threshold.maximize() })
 if (wcCls) wcCls.addEventListener('click', function() { if(window.threshold) window.threshold.close() })
 
-// Keyboard shortcuts
 var isMac = window.threshold && window.threshold.platform === 'darwin'
 document.addEventListener('keydown', function(e) {
   var mod = isMac ? e.metaKey : e.ctrlKey
@@ -457,19 +434,15 @@ document.addEventListener('keydown', function(e) {
   if (mod && e.key === 'd') { $bookmarkBtn.click(); e.preventDefault() }
   if (mod && (e.key === 'ArrowLeft'  || e.key === '[')) { var t2=getTab(activeId); if(t2&&t2.webview) t2.webview.goBack();    e.preventDefault() }
   if (mod && (e.key === 'ArrowRight' || e.key === ']')) { var t3=getTab(activeId); if(t3&&t3.webview) t3.webview.goForward(); e.preventDefault() }
-
-  // Cmd+1 through Cmd+9 switch tabs
   if (mod && e.key >= '1' && e.key <= '9') {
     var idx = parseInt(e.key) - 1
     if (tabs[idx]) { activateTab(tabs[idx].id); e.preventDefault() }
   }
 })
 
-// Platform class
 if (window.threshold && window.threshold.platform) {
   document.body.classList.add(window.threshold.platform)
 }
 
-// ── Init ───────────────────────────────────────────────
 loadBookmarks()
 createTab(HOME, true)
