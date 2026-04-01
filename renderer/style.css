@@ -1,4 +1,4 @@
-css/* Threshold Browser v1.1 — Lit Door Design Language
+/* Threshold Browser v1.1 — Lit Door Design Language
    Global Crossover */
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -73,9 +73,22 @@ body.linux #tab-bar { padding-left: 8px; }
   gap: 2px;
   -webkit-app-region: no-drag;
   scrollbar-width: none;
+  position: relative;
+  z-index: 10;
 }
 
 #tab-bar-inner::-webkit-scrollbar { display: none; }
+
+#tabs-container {
+  display: -webkit-flex;
+  display: flex;
+  -webkit-align-items: flex-end;
+  align-items: flex-end;
+  gap: 2px;
+  height: 100%;
+  -webkit-flex-shrink: 0;
+  flex-shrink: 0;
+}
 
 /* Individual Tab */
 .tab {
