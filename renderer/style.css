@@ -53,10 +53,30 @@ html, body {
   -webkit-app-region: drag;
   padding-left: 80px;
   overflow: visible;
+  position: relative;
+}
+
+#tab-bar::before {
+  content: 'THRESHOLD';
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Georgia', 'Times New Roman', serif;
+  font-size: 9px;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  color: rgba(232,160,32,0.5);
+  -webkit-app-region: drag;
+  pointer-events: none;
+  white-space: nowrap;
 }
 
 body.win32 #tab-bar,
 body.linux #tab-bar { padding-left: 8px; }
+
+body.win32 #tab-bar::before,
+body.linux #tab-bar::before { display: none; }
 
 #tab-bar-inner {
   display: -webkit-flex;
