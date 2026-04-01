@@ -1,265 +1,240 @@
-// Threshold Browser — Core Logic
-// Global Crossover | v0.1
+// Threshold Browser — Core Logic v0.2
+// Global Crossover | Card Home Page
 
 'use strict'
 
-const HOME_URL = 'https://knockknock.email'
-const NEW_TAB  = 'threshold://newtab'
+var HOME_URL   = 'threshold://home'
+var SEARCH_URL = 'https://duckduckgo.com/?q='
 
-let SEARCH_URL = 'https://duckduckgo.com/?q='
+// ── DOM ──────────────────────────────────────────────
+var $contentArea  = document.getElementById('content-area')
+var $homePage     = document.getElementById('home-page')
+var $addressBar   = document.getElementById('address-bar')
+var $securityIcon = document.getElementById('security-icon')
+var $backBtn      = document.getElementById('back-btn')
+var $forwardBtn   = document.getElementById('forward-btn')
+var $reloadBtn    = document.getElementById('reload-btn')
+var $homeBtn      = document.getElementById('home-btn')
+var $homeSearch   = document.getElementById('home-search')
 
-const PINNED_TABS = [
-  { title: 'Knock Knock',  url: 'https://knockknock.email' },
-  { title: 'Seeface',      url: 'https://seeface.app'      },
-  { title: 'Truth Net',    url: 'https://truthnet.news'    },
-  { title: 'Sonify',       url: 'https://sonify.stream'    },
-  { title: 'Mydo Games',   url: 'https://mydogames.com'    },
-  { title: 'Make A Vid',   url: 'https://makeavid.com'     },
-  { title: 'Oath Tracker', url: 'https://oathtracker.com'  },
-  { title: 'Claude',       url: 'https://claude.ai'        },
-]
+// ── State ────────────────────────────────────────────
+var currentUrl    = HOME_URL
+var currentView   = null  // the active webview element
 
-let tabs     = []
-let activeId = null
-let tabSeq   = 0
-
-const $tabsContainer = document.getElementById('tabs-container')
-const $contentArea   = document.getElementById('content-area')
-const $newTabPage    = document.getElementById('new-tab-page')
-const $addressBar    = document.getElementById('address-bar')
-const $securityIcon  = document.getElementById('security-icon')
-const $backBtn       = document.getElementById('back-btn')
-const $forwardBtn    = document.getElementById('forward-btn')
-const $reloadBtn     = document.getElementById('reload-btn')
-const $homeBtn       = document.getElementById('home-btn')
-const $newTabBtn     = document.getElementById('new-tab-btn')
-const $ntSearch      = document.getElementById('nt-search')
-
-function uid()         { return 'tab_' + (++tabSeq) }
-function tab(id)       { return tabs.find(t => t.id === id) }
-function webview(id)   { return document.getElementById('wv_' + id) }
-function isNewTab(url) { return !url || url === NEW_TAB }
-
+// ── Helpers ──────────────────────────────────────────
 function resolveUrl(raw) {
-  const s = (raw || '').trim()
-  if (!s) return null
-  if (isNewTab(s)) return NEW_TAB
+  var s = (raw || '').trim()
+  if (!s) return HOME_URL
+  if (s === 'threshold://home') return HOME_URL
   if (s.startsWith('http://') || s.startsWith('https://') || s.startsWith('file://')) return s
-  if (/^[\w-]+\.[\w]{2,}/.test(s) && !s.includes(' ')) return 'https://' + s
+  if (/^[\w-]+\.[\w]{2,}/.test(s) && s.indexOf(' ') === -1) return 'https://' + s
   return SEARCH_URL + encodeURIComponent(s)
 }
 
-function domain(url) {
-  try { return new URL(url).hostname.replace(/^www\./, '') }
-  catch { return url }
+function isHome(url) {
+  return !url || url === HOME_URL
 }
 
-function createTab(url, pinned = false, title = '') {
-  const id       = uid()
-  const resolved = resolveUrl(url) || NEW_TAB
-  const t        = { id, url: resolved, title: title || (isNewTab(resolved) ? 'New Tab' : domain(resolved)), favicon: null, pinned, loading: false }
-  tabs.push(t)
+// ── Show Home ─────────────────────────────────────────
+function showHome() {
+  currentUrl = HOME_URL
+  // Hide all webviews
+  var views = document.querySelectorAll('webview')
+  for (var i = 0; i < views.length; i++) {
+    views[i].classList.remove('active')
+  }
+  // Show home page
+  $homePage.classList.add('visible')
+  $addressBar.value = ''
+  $addressBar.placeholder = 'Search or enter address…'
+  setButtons(false, false)
+  setSecurityIcon(null)
+  currentView = null
+}
 
-  if (!isNewTab(resolved)) {
-    const wv = document.createElement('webview')
-    wv.id  = 'wv_' + id
-    wv.src = resolved
+// ── Navigate to URL ───────────────────────────────────
+function navigate(raw) {
+  var url = resolveUrl(raw)
+  if (isHome(url)) { showHome(); return }
+
+  currentUrl = url
+
+  // Hide home page
+  $homePage.classList.remove('visible')
+
+  // Check if we already have a webview for this URL session
+  // For simplicity in v0.2 — single webview, reuse it
+  var wv = document.getElementById('main-webview')
+
+  if (!wv) {
+    wv = document.createElement('webview')
+    wv.id = 'main-webview'
     wv.setAttribute('allowpopups', '')
-    attachWebviewEvents(wv, id)
+    wv.setAttribute('webpreferences', 'contextIsolation=false')
+
+    wv.addEventListener('did-navigate', function(e) {
+      currentUrl = e.url
+      $addressBar.value = e.url
+      setSecurityIcon(e.url)
+      setButtons(wv.canGoBack(), wv.canGoForward())
+    })
+
+    wv.addEventListener('did-navigate-in-page', function(e) {
+      if (!e.isMainFrame) return
+      currentUrl = e.url
+      $addressBar.value = e.url
+      setSecurityIcon(e.url)
+      setButtons(wv.canGoBack(), wv.canGoForward())
+    })
+
+    wv.addEventListener('did-start-loading', function() {
+      $reloadBtn.innerHTML = '&#10005;'
+      $reloadBtn.title = 'Stop'
+    })
+
+    wv.addEventListener('did-stop-loading', function() {
+      $reloadBtn.innerHTML = '&#8635;'
+      $reloadBtn.title = 'Reload'
+      setButtons(wv.canGoBack(), wv.canGoForward())
+    })
+
+    wv.addEventListener('new-window', function(e) {
+      e.preventDefault()
+      navigate(e.url)
+    })
+
     $contentArea.appendChild(wv)
   }
 
-  return id
+  wv.src = url
+  wv.classList.add('active')
+  currentView = wv
+
+  $addressBar.value = url
+  setSecurityIcon(url)
+  setButtons(false, false)
 }
 
-function attachWebviewEvents(wv, id) {
-  wv.addEventListener('did-start-loading',    ()  => patch(id, { loading: true  }))
-  wv.addEventListener('did-stop-loading',     ()  => patch(id, { loading: false }))
-  wv.addEventListener('did-navigate',         e   => { patch(id, { url: e.url }); if (activeId === id) syncNav(id) })
-  wv.addEventListener('did-navigate-in-page', e   => { if (!e.isMainFrame) return; patch(id, { url: e.url }); if (activeId === id) syncNav(id) })
-  wv.addEventListener('page-title-updated',   e   => patch(id, { title: e.title || domain(wv.src) }))
-  wv.addEventListener('page-favicon-updated', e   => { if (e.favicons?.[0]) patch(id, { favicon: e.favicons[0] }) })
-  wv.addEventListener('did-fail-load',        e   => { if (e.errorCode === -3) return; patch(id, { loading: false, title: 'Page not found' }) })
-  wv.addEventListener('new-window',           e   => { e.preventDefault(); openTab(e.url) })
-}
-
-function patch(id, updates) {
-  const t = tab(id)
-  if (!t) return
-  Object.assign(t, updates)
-  renderTabBar()
-  if (activeId === id && updates.url) syncNav(id)
-}
-
-function activateTab(id) {
-  activeId = id
-  const t  = tab(id)
-  document.querySelectorAll('webview').forEach(wv => wv.classList.remove('visible'))
-  $newTabPage.classList.remove('visible')
-
-  if (isNewTab(t?.url)) {
-    $newTabPage.classList.add('visible')
-    $addressBar.value = ''
-    setButtons(false, false)
-    setSecurityIcon(null)
-  } else {
-    const wv = webview(id)
-    if (wv) wv.classList.add('visible')
-    syncNav(id)
-  }
-  renderTabBar()
-}
-
-function syncNav(id) {
-  const t  = tab(id)
-  const wv = webview(id)
-  if (!t) return
-  $addressBar.value = isNewTab(t.url) ? '' : t.url
-  setButtons(wv?.canGoBack() || false, wv?.canGoForward() || false)
-  setSecurityIcon(t.url)
-}
-
+// ── Nav buttons ───────────────────────────────────────
 function setButtons(back, forward) {
   $backBtn.disabled    = !back
   $forwardBtn.disabled = !forward
 }
 
 function setSecurityIcon(url) {
-  if (!url || isNewTab(url)) { $securityIcon.textContent = ''; return }
-  if (url.startsWith('https://')) {
-    $securityIcon.textContent = '🔒'
-    $securityIcon.style.opacity = '0.7'
-  } else {
-    $securityIcon.textContent = '⚠️'
-    $securityIcon.style.opacity = '0.9'
-  }
-}
-
-function closeTab(id) {
-  const t = tab(id)
-  if (!t || t.pinned) return
-  const idx = tabs.findIndex(x => x.id === id)
-  tabs.splice(idx, 1)
-  const wv = webview(id)
-  if (wv) wv.remove()
-  if (activeId === id) {
-    const next = tabs[Math.min(idx, tabs.length - 1)]
-    if (next) activateTab(next.id)
-  }
-  renderTabBar()
-}
-
-function navigate(raw) {
-  const url = resolveUrl(raw)
-  if (!url) return
-  const t  = tab(activeId)
-  const wv = webview(activeId)
-  if (!t) return
-
-  if (isNewTab(url)) {
-    patch(activeId, { url: NEW_TAB, title: 'New Tab', favicon: null })
-    activateTab(activeId)
+  if (!url || isHome(url)) {
+    $securityIcon.innerHTML = ''
     return
   }
-
-  patch(activeId, { url, title: domain(url), favicon: null })
-
-  if (wv) {
-    wv.src = url
+  if (url.startsWith('https://')) {
+    $securityIcon.innerHTML = '&#128274;'
+    $securityIcon.style.opacity = '0.5'
   } else {
-    const wvNew = document.createElement('webview')
-    wvNew.id  = 'wv_' + activeId
-    wvNew.src = url
-    wvNew.setAttribute('allowpopups', '')
-    attachWebviewEvents(wvNew, activeId)
-    $contentArea.appendChild(wvNew)
-    $newTabPage.classList.remove('visible')
-    wvNew.classList.add('visible')
+    $securityIcon.innerHTML = '&#9888;'
+    $securityIcon.style.opacity = '0.8'
   }
 }
 
-function openTab(url) {
-  const id = createTab(url)
-  activateTab(id)
+// ── Card clicks ───────────────────────────────────────
+var cards = document.querySelectorAll('.brand-card')
+for (var c = 0; c < cards.length; c++) {
+  (function(card) {
+    card.addEventListener('click', function() {
+      var url = card.getAttribute('data-url')
+      if (url) navigate(url)
+    })
+  })(cards[c])
 }
 
-function renderTabBar() {
-  $tabsContainer.innerHTML = ''
-  tabs.forEach(t => {
-    const el  = document.createElement('div')
-    el.className = ['tab', t.id === activeId ? 'active' : '', t.pinned ? 'pinned' : '', t.loading ? 'loading' : ''].filter(Boolean).join(' ')
-
-    const fav = document.createElement('img')
-    fav.className = 'tab-favicon'
-    if (t.favicon) { fav.src = t.favicon; fav.onerror = () => fav.classList.add('hidden') }
-    else fav.classList.add('hidden')
-
-    const ttl = document.createElement('span')
-    ttl.className   = 'tab-title'
-    ttl.textContent = t.loading ? 'Loading…' : (t.title || domain(t.url))
-
-    const cls = document.createElement('button')
-    cls.className   = 'tab-close'
-    cls.textContent = '✕'
-    cls.addEventListener('click', e => { e.stopPropagation(); closeTab(t.id) })
-
-    el.appendChild(fav)
-    el.appendChild(ttl)
-    el.appendChild(cls)
-    el.addEventListener('click', () => activateTab(t.id))
-    $tabsContainer.appendChild(el)
-  })
-}
-
-$addressBar.addEventListener('keydown', e => {
-  if (e.key === 'Enter')  { navigate($addressBar.value); $addressBar.blur() }
-  if (e.key === 'Escape') { syncNav(activeId); $addressBar.blur() }
-})
-$addressBar.addEventListener('focus', () => $addressBar.select())
-
-$ntSearch.addEventListener('keydown', e => {
-  if (e.key === 'Enter') { navigate($ntSearch.value); $ntSearch.value = '' }
-})
-
-$backBtn.addEventListener('click',    () => webview(activeId)?.goBack())
-$forwardBtn.addEventListener('click', () => webview(activeId)?.goForward())
-$reloadBtn.addEventListener('click',  () => { const wv = webview(activeId); if (wv) wv.reload(); else activateTab(activeId) })
-$homeBtn.addEventListener('click',    () => navigate(HOME_URL))
-
-$newTabBtn.addEventListener('click', () => {
-  const id = createTab(NEW_TAB)
-  activateTab(id)
-  setTimeout(() => $ntSearch.focus(), 50)
-})
-
-document.getElementById('wc-min')?.addEventListener('click',   () => window.threshold.minimize())
-document.getElementById('wc-max')?.addEventListener('click',   () => window.threshold.maximize())
-document.getElementById('wc-close')?.addEventListener('click', () => window.threshold.close())
-
-const isMac = window.threshold.platform === 'darwin'
-document.addEventListener('keydown', e => {
-  const mod = isMac ? e.metaKey : e.ctrlKey
-  if (mod && e.key === 'l') { $addressBar.focus(); $addressBar.select(); e.preventDefault() }
-  if (mod && e.key === 't') { const id = createTab(NEW_TAB); activateTab(id); setTimeout(() => $ntSearch.focus(), 50); e.preventDefault() }
-  if (mod && e.key === 'w') { closeTab(activeId); e.preventDefault() }
-  if (mod && e.key === 'r') { webview(activeId)?.reload(); e.preventDefault() }
-  if (mod && (e.key === 'ArrowLeft'  || e.key === '[')) { webview(activeId)?.goBack();    e.preventDefault() }
-  if (mod && (e.key === 'ArrowRight' || e.key === ']')) { webview(activeId)?.goForward(); e.preventDefault() }
-  if (mod && e.key >= '1' && e.key <= '8') { const idx = parseInt(e.key) - 1; if (tabs[idx]) { activateTab(tabs[idx].id); e.preventDefault() } }
-})
-
-document.body.classList.add(window.threshold.platform || 'unknown')
-
-async function init() {
-  try {
-    const config = await window.threshold.getSearchConfig()
-    SEARCH_URL = config.url || SEARCH_URL
-  } catch (e) {
-    console.warn('Could not load search config:', e)
+// ── Address bar ───────────────────────────────────────
+$addressBar.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    navigate($addressBar.value)
+    $addressBar.blur()
   }
-  PINNED_TABS.forEach(p => createTab(p.url, true, p.title))
-  if (tabs.length > 0) activateTab(tabs[0].id)
-  renderTabBar()
+  if (e.key === 'Escape') {
+    $addressBar.value = isHome(currentUrl) ? '' : currentUrl
+    $addressBar.blur()
+  }
+})
+$addressBar.addEventListener('focus', function() { $addressBar.select() })
+
+// ── Home search ───────────────────────────────────────
+$homeSearch.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') {
+    var q = $homeSearch.value.trim()
+    if (q) { navigate(q); $homeSearch.value = '' }
+  }
+})
+
+// ── Nav button events ─────────────────────────────────
+$backBtn.addEventListener('click', function() {
+  if (currentView) currentView.goBack()
+})
+
+$forwardBtn.addEventListener('click', function() {
+  if (currentView) currentView.goForward()
+})
+
+$reloadBtn.addEventListener('click', function() {
+  if (!currentView || isHome(currentUrl)) return
+  if ($reloadBtn.innerHTML.indexOf('10005') !== -1) {
+    currentView.stop()
+  } else {
+    currentView.reload()
+  }
+})
+
+$homeBtn.addEventListener('click', function() {
+  showHome()
+})
+
+// ── Window controls (Windows/Linux) ───────────────────
+var wcMin   = document.getElementById('wc-min')
+var wcMax   = document.getElementById('wc-max')
+var wcClose = document.getElementById('wc-close')
+
+if (wcMin)   wcMin.addEventListener('click',   function() { window.threshold.minimize() })
+if (wcMax)   wcMax.addEventListener('click',   function() { window.threshold.maximize() })
+if (wcClose) wcClose.addEventListener('click', function() { window.threshold.close() })
+
+// ── Keyboard shortcuts ────────────────────────────────
+var isMac = window.threshold && window.threshold.platform === 'darwin'
+
+document.addEventListener('keydown', function(e) {
+  var mod = isMac ? e.metaKey : e.ctrlKey
+
+  if (mod && e.key === 'l') {
+    $addressBar.focus()
+    $addressBar.select()
+    e.preventDefault()
+  }
+
+  if (mod && e.key === 'r') {
+    if (currentView && !isHome(currentUrl)) currentView.reload()
+    e.preventDefault()
+  }
+
+  if (mod && (e.key === 'ArrowLeft' || e.key === '[')) {
+    if (currentView) currentView.goBack()
+    e.preventDefault()
+  }
+
+  if (mod && (e.key === 'ArrowRight' || e.key === ']')) {
+    if (currentView) currentView.goForward()
+    e.preventDefault()
+  }
+
+  // Escape goes home
+  if (e.key === 'Escape' && !isHome(currentUrl)) {
+    showHome()
+  }
+})
+
+// ── Platform class ────────────────────────────────────
+if (window.threshold && window.threshold.platform) {
+  document.body.classList.add(window.threshold.platform)
 }
 
-init()
+// ── Init ──────────────────────────────────────────────
+showHome()
