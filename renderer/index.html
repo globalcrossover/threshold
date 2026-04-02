@@ -9,13 +9,11 @@
 
 <div id="shell">
 
-  <!-- macOS title bar / drag region + tab bar combined -->
   <div id="tab-bar">
     <div id="tab-bar-inner">
       <div id="tabs-container"></div>
       <button id="new-tab-btn" title="New tab">+</button>
     </div>
-    <!-- Windows/Linux controls -->
     <div id="win-controls">
       <button class="wc-btn" id="wc-min">&#8211;</button>
       <button class="wc-btn" id="wc-max">&#9633;</button>
@@ -23,36 +21,35 @@
     </div>
   </div>
 
-  <!-- Nav Bar -->
   <div id="nav-bar">
     <button class="nav-btn" id="back-btn" title="Back">&#8592;</button>
     <button class="nav-btn" id="forward-btn" title="Forward">&#8594;</button>
     <button class="nav-btn" id="reload-btn" title="Reload">&#8635;</button>
-
     <div id="address-wrap">
       <span id="security-icon"></span>
       <input id="address-bar" type="text" placeholder="Search or enter address…" spellcheck="false" autocomplete="off" />
     </div>
-
     <button class="nav-btn" id="bookmark-btn" title="Bookmark this page">&#9733;</button>
     <button class="nav-btn" id="home-btn" title="Home">&#8962;</button>
   </div>
 
-  <!-- Content Area -->
   <div id="content-area">
 
-    <!-- Home Page template — cloned per tab -->
     <div id="home-page-template" style="display:none;">
       <div class="home-page">
         <div class="ambient-glow"></div>
+
         <div class="branding">
           <div class="threshold-logo">THRESHOLD</div>
           <div class="threshold-tagline">Built by Global Crossover &nbsp;·&nbsp; Powered by God</div>
         </div>
+
         <div class="home-search-wrap">
           <span class="home-search-icon">&#9906;</span>
           <input class="home-search" type="text" placeholder="Search or enter address…" spellcheck="false" autocomplete="off" />
         </div>
+
+        <!-- Card Grid (Home view) -->
         <div class="card-grid">
           <div class="brand-card" data-url="https://www.themajesticreading.com/read"><div class="card-icon">&#128214;</div><div class="card-name">The Majestic Reading</div><div class="card-tagline">The word of God.</div></div>
           <div class="brand-card" data-url="https://knockknock.email"><div class="card-icon">&#9993;</div><div class="card-name">Knock Knock</div><div class="card-tagline">One knock. Every world.</div></div>
@@ -67,20 +64,21 @@
           <div class="brand-card" data-url="https://sonify.stream/radio/im107"><div class="card-icon">&#128251;</div><div class="card-name">IM107</div><div class="card-tagline">Live Islamic radio.</div></div>
           <div class="brand-card" data-url="https://thequrannetwork.com/"><div class="card-icon">&#9790;</div><div class="card-name">The Quran Network</div><div class="card-tagline">Quran. Always on.</div></div>
         </div>
-        <div class="bookmarks-section">
-          <div class="bookmarks-header">
-            <span class="bookmarks-label">Bookmarks</span>
-            <div class="bookmarks-line"></div>
-            <button class="add-bookmark-btn">+ Add</button>
-          </div>
-          <div class="bookmarks-list"></div>
+
+        <!-- Bookmarks View (hidden by default) -->
+        <div class="bookmarks-view" style="display:none;"></div>
+
+        <!-- View Toggle -->
+        <div class="view-toggle">
+          <button class="vt-btn active" data-view="home">&#8962;&nbsp; Home</button>
+          <button class="vt-btn" data-view="bookmarks">&#9733;&nbsp; Bookmarks</button>
         </div>
+
         <div class="home-footer">Threshold &nbsp;·&nbsp; A browser by Global Crossover</div>
       </div>
     </div>
 
   </div>
-
 </div>
 
 <script src="browser.js"></script>
