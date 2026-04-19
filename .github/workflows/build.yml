@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: '20'
       - name: Install Electron 22 for legacy Mac
-        run: npm install electron@22 --save-dev
+        run: npm install electron@13 --save-dev
       - name: Build Mac Legacy
         run: npm run build:mac
         env:
