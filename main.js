@@ -16,7 +16,8 @@ const fs    = require('fs')
 // 1. Sign up free: https://api-dashboard.search.brave.com/register
 // 2. Paste your key below replacing the placeholder string
 // 3. Rebuild — all Threshold searches will use this key
-const BRAVE_API_KEY = 'YOUR_BRAVE_API_KEY_HERE'
+const BRAVE_API_KEY = 'BRAVE_KEY_PLACEHOLDER'
+const DDG_SEARCH    = 'https://duckduckgo.com/?q='
 
 // ── Ad Block ──────────────────────────────────────────
 const AD_BLOCK_PATTERNS = [
@@ -76,7 +77,7 @@ function setupBlocker(ses) {
 // ── Threshold Search (Brave API) ──────────────────────
 function braveSearch(query) {
   return new Promise(function(resolve, reject) {
-    if (!BRAVE_API_KEY || BRAVE_API_KEY === 'YOUR_BRAVE_API_KEY_HERE') {
+    if (!BRAVE_API_KEY || BRAVE_API_KEY === 'BRAVE_KEY_PLACEHOLDER') {
       return reject(new Error('NO_API_KEY'))
     }
     var reqPath = '/res/v1/web/search?q=' + encodeURIComponent(query) +
@@ -243,11 +244,15 @@ ipcMain.handle('get-search-config', () => ({
 
 // ── IPC — Threshold Search ────────────────────────────
 ipcMain.handle('brave-search', async (_, query) => {
+  // If no Brave key, signal renderer to fall back to DuckDuckGo
+  if (!BRAVE_API_KEY || BRAVE_API_KEY === 'BRAVE_KEY_PLACEHOLDER') {
+    return { ok: false, error: 'NO_API_KEY', fallback: DDG_SEARCH + encodeURIComponent(query), query }
+  }
   try {
     var data = await braveSearch(query)
     return { ok: true, results: data.web?.results || [], query }
   } catch(e) {
-    return { ok: false, error: e.message, query }
+    return { ok: false, error: e.message, fallback: DDG_SEARCH + encodeURIComponent(query), query }
   }
 })
 
