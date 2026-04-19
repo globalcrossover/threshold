@@ -22,7 +22,7 @@ jobs:
       - name: Install Electron 13 for legacy Mac
         run: npm install electron@13 --save-dev
       - name: Inject Brave API key
-        run: sed -i '' 's/BRAVE_KEY_PLACEHOLDER/${{ secrets.BRAVE_API_KEY }}/g' main.js
+        run: sed -i '' 's|BRAVE_KEY_PLACEHOLDER|${{ secrets.BRAVE_API_KEY }}|g' main.js
       - name: Build Mac Legacy
         run: npm run build:mac
         env:
@@ -48,7 +48,7 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Inject Brave API key
-        run: sed -i '' 's/BRAVE_KEY_PLACEHOLDER/${{ secrets.BRAVE_API_KEY }}/g' main.js
+        run: sed -i '' 's|BRAVE_KEY_PLACEHOLDER|${{ secrets.BRAVE_API_KEY }}|g' main.js
       - name: Build Mac Modern
         run: npm run build:mac
         env:
@@ -70,7 +70,7 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Inject Brave API key
-        run: sed -i 's/BRAVE_KEY_PLACEHOLDER/${{ secrets.BRAVE_API_KEY }}/g' main.js
+        run: sed -i 's|BRAVE_KEY_PLACEHOLDER|${{ secrets.BRAVE_API_KEY }}|g' main.js
       - name: Build Windows
         run: npm run build:win
         env:
@@ -92,7 +92,7 @@ jobs:
       - name: Install dependencies
         run: npm install
       - name: Inject Brave API key
-        run: sed -i 's/BRAVE_KEY_PLACEHOLDER/${{ secrets.BRAVE_API_KEY }}/g' main.js
+        run: sed -i 's|BRAVE_KEY_PLACEHOLDER|${{ secrets.BRAVE_API_KEY }}|g' main.js
       - name: Build Linux
         run: npm run build:linux
         env:
