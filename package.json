@@ -19,9 +19,10 @@
       "output": "dist"
     },
     "mac": {
-      "category": "public.app-category.productivity",
-      "icon": "assets/icon.icns",
-      "target": [
+  "category": "public.app-category.productivity",
+  "icon": "assets/icon.icns",
+  "minimumSystemVersion": "10.13.0",
+  "target": [
         { "target": "dmg", "arch": ["arm64"] },
         { "target": "dmg", "arch": ["x64"] }
       ]
