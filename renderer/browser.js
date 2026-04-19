@@ -528,6 +528,9 @@ async function showSearchPage(tab, query) {
     var result = await window.threshold.search(query)
     if (result.ok) {
       renderSearchResults(tab.searchPage, query, result.results)
+    } else if (result.fallback) {
+      // No Brave key — redirect to DuckDuckGo seamlessly
+      navigateTab(tab.id, result.fallback)
     } else {
       renderSearchError(tab.searchPage, query, result.error)
     }
