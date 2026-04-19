@@ -1,4 +1,4 @@
-// Threshold — Main Process v0.3
+// Threshold — Main Process v0.3.8
 // Global Crossover
 // Features: Ad Blocker, Email Tracker Blocker, Threshold Search (Brave API),
 //           VAULTit Phase 1, System Tray, Right-click Context Menu
@@ -13,9 +13,8 @@ const zlib  = require('zlib')
 const fs    = require('fs')
 
 // ── Brave Search API ──────────────────────────────────
-// 1. Sign up free: https://api-dashboard.search.brave.com/register
-// 2. Paste your key below replacing the placeholder string
-// 3. Rebuild — all Threshold searches will use this key
+// Key is injected at build time via GitHub Actions secret.
+// If placeholder remains, search falls back to DuckDuckGo automatically.
 const BRAVE_API_KEY = 'BRAVE_KEY_PLACEHOLDER'
 const DDG_SEARCH    = 'https://duckduckgo.com/?q='
 
@@ -244,7 +243,6 @@ ipcMain.handle('get-search-config', () => ({
 
 // ── IPC — Threshold Search ────────────────────────────
 ipcMain.handle('brave-search', async (_, query) => {
-  // If no Brave key, signal renderer to fall back to DuckDuckGo
   if (!BRAVE_API_KEY || BRAVE_API_KEY === 'BRAVE_KEY_PLACEHOLDER') {
     return { ok: false, error: 'NO_API_KEY', fallback: DDG_SEARCH + encodeURIComponent(query), query }
   }
@@ -289,7 +287,6 @@ var EMAIL_RE = /[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/
 ipcMain.on('show-context-menu', function(event, params) {
   var items = []
 
-  // Link options
   if (params.linkURL && !params.linkURL.startsWith('javascript:')) {
     items.push({
       label: 'Open Link in New Tab',
@@ -304,7 +301,6 @@ ipcMain.on('show-context-menu', function(event, params) {
     items.push({ type: 'separator' })
   }
 
-  // Knock this email
   var emailTarget = null
   if (params.linkURL && params.linkURL.startsWith('mailto:')) {
     emailTarget = decodeURIComponent(params.linkURL.replace('mailto:', '').split('?')[0])
@@ -324,7 +320,6 @@ ipcMain.on('show-context-menu', function(event, params) {
     items.push({ type: 'separator' })
   }
 
-  // Selection
   if (params.selectionText && params.selectionText.trim()) {
     var sel     = params.selectionText
     var preview = sel.length > 24 ? sel.slice(0, 24) + '\u2026' : sel
@@ -338,7 +333,6 @@ ipcMain.on('show-context-menu', function(event, params) {
     items.push({ type: 'separator' })
   }
 
-  // Inspect
   items.push({
     label: 'Inspect Element',
     click: function() {
