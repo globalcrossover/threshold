@@ -5,6 +5,10 @@
   <title>Threshold</title>
   <link rel="stylesheet" href="style.css" />
   <style>
+    /* ── Scrollbar Hidden ── */
+    ::-webkit-scrollbar { display: none; }
+    * { -ms-overflow-style: none; scrollbar-width: none; }
+
     /* ── Window Drag Region ── */
     #tab-bar { -webkit-app-region: drag; }
     #tab-bar button, #tab-bar input, .tab, #tabs-container,
@@ -21,7 +25,7 @@
     }
     .gc-section-label {
       font-family: Georgia, serif; font-size: 10px; letter-spacing: 0.14em;
-      color: rgba(232,160,32,0.65); text-transform: uppercase;
+      color: rgba(232,160,32,0.85); text-transform: uppercase;
     }
     .gc-collapse-btn {
       background: none; border: 1px solid rgba(232,160,32,0.2);
@@ -42,7 +46,7 @@
     }
     .user-section-label {
       font-family: Georgia, serif; font-size: 10px; letter-spacing: 0.14em;
-      color: rgba(242,234,216,0.35); text-transform: uppercase;
+      color: rgba(242,234,216,0.6); text-transform: uppercase;
     }
     .add-user-card-btn {
       background: none; border: 1px solid rgba(242,234,216,0.14);
@@ -70,7 +74,7 @@
     .user-card-del:hover { color: rgba(255,90,90,0.8); }
     .user-card-icon { font-size: 22px; margin-bottom: 6px; display: block; }
     .user-card-name {
-      font-size: 11px; color: rgba(242,234,216,0.75);
+      font-size: 11px; color: rgba(242,234,216,0.9);
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
 
@@ -97,19 +101,19 @@
       background: none; border: none; outline: none;
       width: 100%; color: #f2ead8; font-size: 14px;
     }
-    .search-meta { font-size: 11px; color: rgba(242,234,216,0.35); margin-bottom: 20px; }
+    .search-meta { font-size: 11px; color: rgba(242,234,216,0.55); margin-bottom: 20px; }
     .search-results { display: flex; flex-direction: column; }
     .search-result {
       padding: 16px 0; border-bottom: 1px solid rgba(242,234,216,0.07);
       cursor: pointer; transition: padding-left 0.15s;
     }
     .search-result:hover { padding-left: 8px; }
-    .search-result-domain { font-size: 11px; color: rgba(242,234,216,0.4); margin-bottom: 4px; }
+    .search-result-domain { font-size: 11px; color: rgba(242,234,216,0.6); margin-bottom: 4px; }
     .search-result-title {
       font-size: 16px; color: #e8a020; margin-bottom: 6px;
       line-height: 1.3; font-family: Georgia, serif;
     }
-    .search-result-desc { font-size: 13px; color: rgba(242,234,216,0.62); line-height: 1.55; }
+    .search-result-desc { font-size: 13px; color: rgba(242,234,216,0.78); line-height: 1.55; }
     .search-no-results {
       text-align: center; color: rgba(242,234,216,0.35);
       padding: 60px 0; font-family: Georgia, serif; font-size: 15px;
@@ -137,7 +141,7 @@
       font-size: 12px; cursor: pointer; transition: all 0.2s;
     }
     .vault-add-btn:hover { background: rgba(232,160,32,0.22); }
-    .vault-status { font-size: 11px; color: rgba(242,234,216,0.3); flex: 1; }
+    .vault-status { font-size: 11px; color: rgba(242,234,216,0.55); flex: 1; }
     .vault-enc-badge {
       font-size: 10px; background: rgba(232,160,32,0.1);
       border: 1px solid rgba(232,160,32,0.3); color: rgba(232,160,32,0.8);
