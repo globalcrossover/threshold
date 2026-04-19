@@ -4,6 +4,169 @@
   <meta charset="UTF-8" />
   <title>Threshold</title>
   <link rel="stylesheet" href="style.css" />
+  <style>
+    /* ── Window Drag Region ── */
+    #tab-bar { -webkit-app-region: drag; }
+    #tab-bar button, #tab-bar input, .tab, #tabs-container,
+    #new-tab-btn, #win-controls, .wc-btn { -webkit-app-region: no-drag; }
+
+    /* ── Tab Drag Reorder ── */
+    .tab.dragging     { opacity: 0.35; }
+    .tab.drag-over    { border-left: 2px solid #e8a020 !important; }
+
+    /* ── GC Section (collapsible) ── */
+    .gc-section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin: 0 2px 12px; padding: 0 2px;
+    }
+    .gc-section-label {
+      font-family: Georgia, serif; font-size: 10px; letter-spacing: 0.14em;
+      color: rgba(232,160,32,0.65); text-transform: uppercase;
+    }
+    .gc-collapse-btn {
+      background: none; border: 1px solid rgba(232,160,32,0.2);
+      color: rgba(232,160,32,0.55); border-radius: 4px;
+      padding: 2px 9px; font-size: 10px; cursor: pointer;
+      transition: all 0.2s; line-height: 1.6;
+    }
+    .gc-collapse-btn:hover { border-color: rgba(232,160,32,0.5); color: #e8a020; }
+    .gc-section.collapsed .card-grid { display: none !important; }
+    .gc-section.collapsed .gc-collapse-btn::after { content: ' Show'; }
+    .gc-section:not(.collapsed) .gc-collapse-btn::after { content: ' Hide'; }
+
+    /* ── User Cards Section ── */
+    .user-section { margin-top: 24px; }
+    .user-section-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin: 0 2px 12px; padding: 0 2px;
+    }
+    .user-section-label {
+      font-family: Georgia, serif; font-size: 10px; letter-spacing: 0.14em;
+      color: rgba(242,234,216,0.35); text-transform: uppercase;
+    }
+    .add-user-card-btn {
+      background: none; border: 1px solid rgba(242,234,216,0.14);
+      color: rgba(242,234,216,0.45); border-radius: 4px;
+      padding: 2px 10px; font-size: 11px; cursor: pointer; transition: all 0.2s;
+    }
+    .add-user-card-btn:hover { border-color: rgba(232,160,32,0.4); color: #e8a020; }
+    .user-card-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 10px; min-height: 10px;
+    }
+    .user-card {
+      position: relative; background: rgba(14,20,32,0.7);
+      border: 1px solid rgba(242,234,216,0.09); border-radius: 10px;
+      padding: 16px 10px 12px; text-align: center; cursor: pointer;
+      transition: all 0.2s;
+    }
+    .user-card:hover { border-color: rgba(232,160,32,0.3); transform: translateY(-2px); }
+    .user-card-del {
+      position: absolute; top: 5px; right: 6px;
+      background: none; border: none; color: rgba(242,234,216,0.25);
+      cursor: pointer; font-size: 10px; padding: 2px; line-height: 1;
+      transition: color 0.2s;
+    }
+    .user-card-del:hover { color: rgba(255,90,90,0.8); }
+    .user-card-icon { font-size: 22px; margin-bottom: 6px; display: block; }
+    .user-card-name {
+      font-size: 11px; color: rgba(242,234,216,0.75);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+
+    /* ── Threshold Search Page ── */
+    .search-page {
+      display: none; width: 100%; height: 100%; overflow-y: auto;
+      background: #080b12; position: absolute; inset: 0;
+    }
+    .search-page.active { display: block; }
+    .search-page-inner { max-width: 720px; margin: 0 auto; padding: 36px 24px 80px; }
+    .search-header {
+      display: flex; align-items: center; gap: 16px; margin-bottom: 28px;
+    }
+    .search-logo {
+      font-family: Georgia, serif; font-size: 17px; letter-spacing: 0.22em;
+      color: #e8a020; flex-shrink: 0; text-decoration: none;
+    }
+    .search-input-wrap {
+      flex: 1; background: rgba(14,20,32,0.95);
+      border: 1px solid rgba(232,160,32,0.35); border-radius: 24px;
+      padding: 9px 18px; display: flex; align-items: center;
+    }
+    .search-page-input {
+      background: none; border: none; outline: none;
+      width: 100%; color: #f2ead8; font-size: 14px;
+    }
+    .search-meta { font-size: 11px; color: rgba(242,234,216,0.35); margin-bottom: 20px; }
+    .search-results { display: flex; flex-direction: column; }
+    .search-result {
+      padding: 16px 0; border-bottom: 1px solid rgba(242,234,216,0.07);
+      cursor: pointer; transition: padding-left 0.15s;
+    }
+    .search-result:hover { padding-left: 8px; }
+    .search-result-domain { font-size: 11px; color: rgba(242,234,216,0.4); margin-bottom: 4px; }
+    .search-result-title {
+      font-size: 16px; color: #e8a020; margin-bottom: 6px;
+      line-height: 1.3; font-family: Georgia, serif;
+    }
+    .search-result-desc { font-size: 13px; color: rgba(242,234,216,0.62); line-height: 1.55; }
+    .search-no-results {
+      text-align: center; color: rgba(242,234,216,0.35);
+      padding: 60px 0; font-family: Georgia, serif; font-size: 15px;
+    }
+    .search-loading {
+      text-align: center; color: rgba(232,160,32,0.55);
+      padding: 60px 0; font-family: Georgia, serif;
+      letter-spacing: 0.12em; font-size: 14px;
+    }
+    .search-error { text-align: center; padding: 60px 0; }
+    .search-error-msg { color: rgba(242,234,216,0.45); font-size: 14px; margin-bottom: 14px; }
+    .search-error-setup {
+      font-size: 12px; color: rgba(232,160,32,0.6);
+      line-height: 1.8; background: rgba(232,160,32,0.06);
+      border: 1px solid rgba(232,160,32,0.2); border-radius: 8px;
+      padding: 16px 20px; display: inline-block; text-align: left;
+    }
+
+    /* ── VAULTit View ── */
+    .vault-view { width: 100%; }
+    .vault-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .vault-add-btn {
+      background: rgba(232,160,32,0.12); border: 1px solid rgba(232,160,32,0.35);
+      color: #e8a020; border-radius: 6px; padding: 8px 16px;
+      font-size: 12px; cursor: pointer; transition: all 0.2s;
+    }
+    .vault-add-btn:hover { background: rgba(232,160,32,0.22); }
+    .vault-status { font-size: 11px; color: rgba(242,234,216,0.3); flex: 1; }
+    .vault-enc-badge {
+      font-size: 10px; background: rgba(232,160,32,0.1);
+      border: 1px solid rgba(232,160,32,0.3); color: rgba(232,160,32,0.8);
+      border-radius: 4px; padding: 2px 8px;
+    }
+    .vault-list { display: flex; flex-direction: column; gap: 8px; }
+    .vault-item {
+      background: rgba(14,20,32,0.8); border: 1px solid rgba(242,234,216,0.08);
+      border-radius: 10px; padding: 14px 16px;
+      display: flex; align-items: center; gap: 12px;
+      transition: border-color 0.2s;
+    }
+    .vault-item:hover { border-color: rgba(232,160,32,0.2); }
+    .vault-item-icon { font-size: 20px; flex-shrink: 0; }
+    .vault-item-info { flex: 1; min-width: 0; }
+    .vault-item-domain { font-size: 13px; color: #f2ead8; }
+    .vault-item-user  { font-size: 11px; color: rgba(242,234,216,0.45); margin-top: 2px; }
+    .vault-item-actions { display: flex; gap: 6px; flex-shrink: 0; }
+    .vault-btn {
+      background: rgba(242,234,216,0.05); border: 1px solid rgba(242,234,216,0.1);
+      color: rgba(242,234,216,0.6); border-radius: 5px; padding: 4px 10px;
+      font-size: 11px; cursor: pointer; transition: all 0.2s;
+    }
+    .vault-btn:hover { background: rgba(232,160,32,0.14); border-color: rgba(232,160,32,0.3); color: #e8a020; }
+    .vault-btn.del { color: rgba(255,100,100,0.45); }
+    .vault-btn.del:hover { background: rgba(255,60,60,0.1); border-color: rgba(255,100,100,0.25); color: rgba(255,120,120,0.9); }
+    .vault-empty { text-align: center; color: rgba(242,234,216,0.28); padding: 40px 0; font-size: 13px; }
+    .vault-copy-flash { color: rgba(100,220,100,0.8) !important; }
+  </style>
 </head>
 <body>
 
@@ -22,15 +185,16 @@
   </div>
 
   <div id="nav-bar">
-    <button class="nav-btn" id="back-btn" title="Back">&#8592;</button>
+    <button class="nav-btn" id="back-btn"    title="Back">&#8592;</button>
     <button class="nav-btn" id="forward-btn" title="Forward">&#8594;</button>
-    <button class="nav-btn" id="reload-btn" title="Reload">&#8635;</button>
+    <button class="nav-btn" id="reload-btn"  title="Reload">&#8635;</button>
     <div id="address-wrap">
       <span id="security-icon"></span>
-      <input id="address-bar" type="text" placeholder="Search or enter address…" spellcheck="false" autocomplete="off" />
+      <input id="address-bar" type="text" placeholder="Search or enter address…"
+             spellcheck="false" autocomplete="off" />
     </div>
     <button class="nav-btn" id="bookmark-btn" title="Bookmark this page">&#9733;</button>
-    <button class="nav-btn" id="home-btn" title="Home">&#8962;</button>
+    <button class="nav-btn" id="home-btn"     title="Home">&#8962;</button>
   </div>
 
   <div id="content-area">
@@ -46,32 +210,53 @@
 
         <div class="home-search-wrap">
           <span class="home-search-icon">&#9906;</span>
-          <input class="home-search" type="text" placeholder="Search or enter address…" spellcheck="false" autocomplete="off" />
+          <input class="home-search" type="text"
+                 placeholder="Search or enter address…"
+                 spellcheck="false" autocomplete="off" />
         </div>
 
-        <!-- Card Grid (Home view) -->
-        <div class="card-grid">
-          <div class="brand-card" data-url="https://www.themajesticreading.com/read"><div class="card-icon">&#128214;</div><div class="card-name">The Majestic Reading</div><div class="card-tagline">The word of God.</div></div>
-          <div class="brand-card" data-url="https://knockknock.email"><div class="card-icon">&#9993;</div><div class="card-name">Knock Knock</div><div class="card-tagline">One knock. Every world.</div></div>
-          <div class="brand-card" data-url="https://seeface.app"><div class="card-icon">&#128065;</div><div class="card-name">Seeface</div><div class="card-tagline">Your command centre.</div></div>
-          <div class="brand-card" data-url="https://truthnet.news"><div class="card-icon">&#128225;</div><div class="card-name">Truth Net</div><div class="card-tagline">News you can trust.</div></div>
-          <div class="brand-card" data-url="https://sonify.stream"><div class="card-icon">&#9835;</div><div class="card-name">Sonify</div><div class="card-tagline">Music reimagined.</div></div>
-          <div class="brand-card" data-url="https://mydogames.com"><div class="card-icon">&#127918;</div><div class="card-name">Mydo Games</div><div class="card-tagline">Play your world.</div></div>
-          <div class="brand-card" data-url="https://makeavid.com"><div class="card-icon">&#127916;</div><div class="card-name">Make A Vid</div><div class="card-tagline">AI music videos.</div></div>
-          <div class="brand-card" data-url="https://oathtracker.com"><div class="card-icon">&#9889;</div><div class="card-name">Oath Tracker</div><div class="card-tagline">Keep your word.</div></div>
-          <div class="brand-card" data-url="https://claude.ai"><div class="card-icon">&#10022;</div><div class="card-name">Claude</div><div class="card-tagline">Your AI assistant.</div></div>
-          <div class="brand-card gc" data-url="https://globalcrossover.com"><div class="card-icon">&#127758;</div><div class="card-name">Global Crossover</div><div class="card-tagline">The mothership.</div></div>
-          <div class="brand-card" data-url="https://sonify.stream/radio/im107"><div class="card-icon">&#128251;</div><div class="card-name">IM107</div><div class="card-tagline">Live Islamic radio.</div></div>
-          <div class="brand-card" data-url="https://thequrannetwork.com/"><div class="card-icon">&#9790;</div><div class="card-name">The Quran Network</div><div class="card-tagline">Quran. Always on.</div></div>
+        <!-- GC Cards (locked, collapsible) -->
+        <div class="gc-section">
+          <div class="gc-section-header">
+            <span class="gc-section-label">&#127758; Global Crossover</span>
+            <button class="gc-collapse-btn">&#9650;</button>
+          </div>
+          <div class="card-grid">
+            <div class="brand-card" data-url="https://www.themajesticreading.com/read"><div class="card-icon">&#128214;</div><div class="card-name">The Majestic Reading</div><div class="card-tagline">The word of God.</div></div>
+            <div class="brand-card" data-url="https://knockknock.email"><div class="card-icon">&#9993;</div><div class="card-name">Knock Knock</div><div class="card-tagline">One knock. Every world.</div></div>
+            <div class="brand-card" data-url="https://seeface.app"><div class="card-icon">&#128065;</div><div class="card-name">Seeface</div><div class="card-tagline">Your command centre.</div></div>
+            <div class="brand-card" data-url="https://truthnet.news"><div class="card-icon">&#128225;</div><div class="card-name">Truth Net</div><div class="card-tagline">News you can trust.</div></div>
+            <div class="brand-card" data-url="https://sonify.stream"><div class="card-icon">&#9835;</div><div class="card-name">Sonify</div><div class="card-tagline">Music reimagined.</div></div>
+            <div class="brand-card" data-url="https://mydogames.com"><div class="card-icon">&#127918;</div><div class="card-name">Mydo Games</div><div class="card-tagline">Play your world.</div></div>
+            <div class="brand-card" data-url="https://makeavid.com"><div class="card-icon">&#127916;</div><div class="card-name">Make A Vid</div><div class="card-tagline">AI music videos.</div></div>
+            <div class="brand-card" data-url="https://oathtracker.com"><div class="card-icon">&#9889;</div><div class="card-name">Oath Tracker</div><div class="card-tagline">Keep your word.</div></div>
+            <div class="brand-card" data-url="https://crosscast.stream"><div class="card-icon">&#128251;</div><div class="card-name">CrossCast</div><div class="card-tagline">Tune in.</div></div>
+            <div class="brand-card gc" data-url="https://globalcrossover.com"><div class="card-icon">&#127758;</div><div class="card-name">Global Crossover</div><div class="card-tagline">The mothership.</div></div>
+            <div class="brand-card" data-url="https://sonify.stream/radio/im107"><div class="card-icon">&#128247;</div><div class="card-name">IM107</div><div class="card-tagline">Live Islamic radio.</div></div>
+            <div class="brand-card" data-url="https://thequrannetwork.com/"><div class="card-icon">&#9790;</div><div class="card-name">The Quran Network</div><div class="card-tagline">Quran. Always on.</div></div>
+          </div>
         </div>
 
-        <!-- Bookmarks View (hidden by default) -->
+        <!-- User Cards (editable) -->
+        <div class="user-section">
+          <div class="user-section-header">
+            <span class="user-section-label">Your Space</span>
+            <button class="add-user-card-btn">&#43; Add Card</button>
+          </div>
+          <div class="user-card-grid"></div>
+        </div>
+
+        <!-- Bookmarks View -->
         <div class="bookmarks-view" style="display:none;"></div>
+
+        <!-- VAULTit View -->
+        <div class="vault-view" style="display:none;"></div>
 
         <!-- View Toggle -->
         <div class="view-toggle">
           <button class="vt-btn active" data-view="home">&#8962;&nbsp; Home</button>
           <button class="vt-btn" data-view="bookmarks">&#9733;&nbsp; Bookmarks</button>
+          <button class="vt-btn" data-view="vault">&#128274;&nbsp; Vault</button>
         </div>
 
         <div class="home-footer">Threshold &nbsp;·&nbsp; A browser by Global Crossover</div>
