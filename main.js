@@ -16,7 +16,7 @@ const fs    = require('fs')
 // 1. Sign up free: https://api-dashboard.search.brave.com/register
 // 2. Paste your key below replacing the placeholder string
 // 3. Rebuild — all Threshold searches will use this key
-const BRAVE_API_KEY = 'BSAs29qaypQa83u8peV5PTrotjCgZNW'
+const BRAVE_API_KEY = 'YOUR_BRAVE_API_KEY_HERE'
 
 // ── Ad Block ──────────────────────────────────────────
 const AD_BLOCK_PATTERNS = [
@@ -157,10 +157,10 @@ let mainWindow
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width:           1280,
-    height:          800,
-    minWidth:        900,
-    minHeight:       600,
+    width:           1440,
+    height:          960,
+    minWidth:        1000,
+    minHeight:       700,
     backgroundColor: '#080b12',
     titleBarStyle:   process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
     trafficLightPosition: { x: 16, y: 12 },
