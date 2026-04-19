@@ -11,12 +11,96 @@
 
     /* ── Window Drag Region ── */
     #tab-bar { -webkit-app-region: drag; }
-    #tab-bar button, #tab-bar input, .tab, #tabs-container,
+    #tab-bar button, #tab-bar input, .tab,
     #new-tab-btn, #win-controls, .wc-btn { -webkit-app-region: no-drag; }
 
     /* ── Tab Drag Reorder ── */
-    .tab.dragging     { opacity: 0.35; }
-    .tab.drag-over    { border-left: 2px solid #e8a020 !important; }
+    .tab.dragging  { opacity: 0.35; }
+    .tab.drag-over { border-left: 2px solid #e8a020 !important; }
+
+    /* ── Day Mode ── */
+    body.day-mode {
+      --dm-bg:       #f0ebe0;
+      --dm-surface:  #e8e2d5;
+      --dm-card:     #dfd9ca;
+      --dm-text:     #1a1410;
+      --dm-text2:    rgba(26,20,16,0.65);
+      --dm-border:   rgba(26,20,16,0.12);
+      --dm-accent:   #b86e00;
+    }
+    body.day-mode #shell        { background: var(--dm-bg); }
+    body.day-mode #tab-bar      { background: var(--dm-surface); border-bottom-color: var(--dm-border); }
+    body.day-mode .tab          { background: var(--dm-card); color: var(--dm-text); }
+    body.day-mode .tab.active   { background: var(--dm-bg); color: var(--dm-accent); }
+    body.day-mode #nav-bar      { background: var(--dm-surface); border-bottom-color: var(--dm-border); }
+    body.day-mode #address-bar  { background: var(--dm-bg); color: var(--dm-text); border-color: var(--dm-border); }
+    body.day-mode #address-wrap { background: var(--dm-bg); border-color: var(--dm-border); }
+    body.day-mode .nav-btn      { color: var(--dm-text2); }
+    body.day-mode .nav-btn:hover { color: var(--dm-accent); }
+    body.day-mode .home-page    { background: var(--dm-bg); }
+    body.day-mode .ambient-glow { opacity: 0.3; }
+    body.day-mode .threshold-logo { -webkit-text-fill-color: var(--dm-accent) !important; background: none !important; color: var(--dm-accent); }
+    body.day-mode .threshold-tagline { color: var(--dm-text2); }
+    body.day-mode .home-search-wrap { background: var(--dm-surface); border-color: var(--dm-border); }
+    body.day-mode .home-search  { color: var(--dm-text); }
+    body.day-mode .home-search::placeholder { color: var(--dm-text2); }
+    body.day-mode .brand-card   { background: var(--dm-card); border-color: var(--dm-border); }
+    body.day-mode .brand-card:hover { border-color: var(--dm-accent); }
+    body.day-mode .card-name    { color: var(--dm-text); }
+    body.day-mode .card-tagline { color: var(--dm-text2); }
+    body.day-mode .brand-card.gc { background: rgba(184,110,0,0.1); border-color: rgba(184,110,0,0.35); }
+    body.day-mode .view-toggle  { background: var(--dm-surface); border-color: var(--dm-border); }
+    body.day-mode .vt-btn       { color: var(--dm-text2); }
+    body.day-mode .vt-btn.active { background: var(--dm-card); color: var(--dm-accent); }
+    body.day-mode .home-footer  { color: var(--dm-text2); }
+    body.day-mode .gc-section-label { color: rgba(184,110,0,0.85); }
+    body.day-mode .gc-collapse-btn  { border-color: rgba(184,110,0,0.3); color: rgba(184,110,0,0.7); }
+    body.day-mode .user-section-label { color: var(--dm-text2); }
+    body.day-mode .add-user-card-btn  { border-color: var(--dm-border); color: var(--dm-text2); }
+    body.day-mode .user-card    { background: var(--dm-card); border-color: var(--dm-border); }
+    body.day-mode .user-card-name { color: var(--dm-text); }
+    body.day-mode .bm-toolbar   { border-bottom-color: var(--dm-border); }
+    body.day-mode .bm-tool-btn  { background: var(--dm-card); border-color: var(--dm-border); color: var(--dm-text); }
+    body.day-mode .bm-folder    { border-color: var(--dm-border); }
+    body.day-mode .bm-folder-header { background: var(--dm-surface); }
+    body.day-mode .bm-folder-name { color: var(--dm-text); }
+    body.day-mode .bm-link-item { border-bottom-color: var(--dm-border); }
+    body.day-mode .bm-link-name { color: var(--dm-text); }
+    body.day-mode .bm-link-url  { color: var(--dm-text2); }
+    body.day-mode .search-page  { background: var(--dm-bg); }
+    body.day-mode .search-logo  { color: var(--dm-accent); }
+    body.day-mode .search-input-wrap { background: var(--dm-surface); border-color: rgba(184,110,0,0.4); }
+    body.day-mode .search-page-input { color: var(--dm-text); }
+    body.day-mode .search-result { border-bottom-color: var(--dm-border); }
+    body.day-mode .search-result-title { color: var(--dm-accent); }
+    body.day-mode .search-result-domain { color: var(--dm-text2); }
+    body.day-mode .search-result-desc   { color: var(--dm-text2); }
+    body.day-mode .vault-view   { color: var(--dm-text); }
+    body.day-mode .vault-item   { background: var(--dm-card); border-color: var(--dm-border); }
+    body.day-mode .vault-item-domain { color: var(--dm-text); }
+    body.day-mode .vault-item-user   { color: var(--dm-text2); }
+    body.day-mode #bm-modal     { background: var(--dm-surface); color: var(--dm-text); }
+    body.day-mode #bm-modal input,
+    body.day-mode #bm-modal select { background: var(--dm-bg); color: var(--dm-text); border-color: var(--dm-border); }
+
+    /* ── Day mode toggle button ── */
+    #day-mode-btn {
+      background: none;
+      border: 1px solid rgba(242,234,216,0.2);
+      color: rgba(242,234,216,0.6);
+      border-radius: 6px;
+      padding: 4px 9px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      line-height: 1;
+    }
+    #day-mode-btn:hover { border-color: rgba(232,160,32,0.5); color: #e8a020; }
+    body.day-mode #day-mode-btn {
+      border-color: rgba(184,110,0,0.3);
+      color: rgba(26,20,16,0.6);
+    }
+    body.day-mode #day-mode-btn:hover { border-color: var(--dm-accent); color: var(--dm-accent); }
 
     /* ── GC Section (collapsible) ── */
     .gc-section-header {
@@ -38,7 +122,7 @@
     .gc-section.collapsed .gc-collapse-btn::after { content: ' Show'; }
     .gc-section:not(.collapsed) .gc-collapse-btn::after { content: ' Hide'; }
 
-    /* ── User Cards Section ── */
+    /* ── User Cards ── */
     .user-section { margin-top: 24px; }
     .user-section-header {
       display: flex; align-items: center; justify-content: space-between;
@@ -50,7 +134,7 @@
     }
     .add-user-card-btn {
       background: none; border: 1px solid rgba(242,234,216,0.14);
-      color: rgba(242,234,216,0.45); border-radius: 4px;
+      color: rgba(242,234,216,0.55); border-radius: 4px;
       padding: 2px 10px; font-size: 11px; cursor: pointer; transition: all 0.2s;
     }
     .add-user-card-btn:hover { border-color: rgba(232,160,32,0.4); color: #e8a020; }
@@ -78,7 +162,7 @@
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
 
-    /* ── Threshold Search Page ── */
+    /* ── Search Page ── */
     .search-page {
       display: none; width: 100%; height: 100%; overflow-y: auto;
       background: #080b12; position: absolute; inset: 0;
@@ -90,7 +174,7 @@
     }
     .search-logo {
       font-family: Georgia, serif; font-size: 17px; letter-spacing: 0.22em;
-      color: #e8a020; flex-shrink: 0; text-decoration: none;
+      color: #e8a020; flex-shrink: 0;
     }
     .search-input-wrap {
       flex: 1; background: rgba(14,20,32,0.95);
@@ -132,7 +216,7 @@
       padding: 16px 20px; display: inline-block; text-align: left;
     }
 
-    /* ── VAULTit View ── */
+    /* ── VAULTit ── */
     .vault-view { width: 100%; }
     .vault-toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
     .vault-add-btn {
@@ -151,14 +235,13 @@
     .vault-item {
       background: rgba(14,20,32,0.8); border: 1px solid rgba(242,234,216,0.08);
       border-radius: 10px; padding: 14px 16px;
-      display: flex; align-items: center; gap: 12px;
-      transition: border-color 0.2s;
+      display: flex; align-items: center; gap: 12px; transition: border-color 0.2s;
     }
     .vault-item:hover { border-color: rgba(232,160,32,0.2); }
     .vault-item-icon { font-size: 20px; flex-shrink: 0; }
     .vault-item-info { flex: 1; min-width: 0; }
     .vault-item-domain { font-size: 13px; color: #f2ead8; }
-    .vault-item-user  { font-size: 11px; color: rgba(242,234,216,0.45); margin-top: 2px; }
+    .vault-item-user   { font-size: 11px; color: rgba(242,234,216,0.55); margin-top: 2px; }
     .vault-item-actions { display: flex; gap: 6px; flex-shrink: 0; }
     .vault-btn {
       background: rgba(242,234,216,0.05); border: 1px solid rgba(242,234,216,0.1);
@@ -182,6 +265,7 @@
       <button id="new-tab-btn" title="New tab">+</button>
     </div>
     <div id="win-controls">
+      <button id="day-mode-btn" title="Toggle day / night mode">&#9788;</button>
       <button class="wc-btn" id="wc-min">&#8211;</button>
       <button class="wc-btn" id="wc-max">&#9633;</button>
       <button class="wc-btn wc-close" id="wc-close">&#10005;</button>
@@ -219,7 +303,7 @@
                  spellcheck="false" autocomplete="off" />
         </div>
 
-        <!-- GC Cards (locked, collapsible) -->
+        <!-- GC Cards (collapsible) -->
         <div class="gc-section">
           <div class="gc-section-header">
             <span class="gc-section-label">&#127758; Global Crossover</span>
@@ -241,7 +325,7 @@
           </div>
         </div>
 
-        <!-- User Cards (editable) -->
+        <!-- User Cards -->
         <div class="user-section">
           <div class="user-section-header">
             <span class="user-section-label">Your Space</span>
