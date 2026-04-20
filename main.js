@@ -1,7 +1,7 @@
-// Threshold — Main Process v0.3.9
+// Threshold — Main Process v0.4.0
 // Global Crossover
 // Features: Ad Blocker, Email Tracker Blocker, Threshold Search (Brave API),
-//           VAULTit Phase 1, System Tray, Right-click Context Menu
+//           VAULTit Phase 1, System Tray, Right-click Context Menu, JS Window Drag
 
 'use strict'
 
@@ -162,7 +162,6 @@ function createWindow() {
     minWidth:        1000,
     minHeight:       700,
     backgroundColor: '#080b12',
-    // frame: false on ALL platforms so CSS drag region works everywhere
     frame:           false,
     titleBarStyle:   process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
     trafficLightPosition: { x: 16, y: 12 },
@@ -235,6 +234,14 @@ ipcMain.on('window-maximize', ()       => {
   mainWindow?.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize()
 })
 ipcMain.on('window-close', () => mainWindow?.close())
+
+// ── IPC — JS Window Drag ──────────────────────────────
+ipcMain.handle('get-window-pos', () => {
+  return mainWindow ? mainWindow.getPosition() : [0, 0]
+})
+ipcMain.on('set-window-pos', (_, x, y) => {
+  if (mainWindow) mainWindow.setPosition(Math.round(x), Math.round(y))
+})
 
 ipcMain.handle('get-search-config', () => ({
   engines: { threshold: 'threshold://search?q=' },
