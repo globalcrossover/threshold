@@ -1,4 +1,4 @@
-// Threshold — Main Process v0.3.8
+// Threshold — Main Process v0.3.9
 // Global Crossover
 // Features: Ad Blocker, Email Tracker Blocker, Threshold Search (Brave API),
 //           VAULTit Phase 1, System Tray, Right-click Context Menu
@@ -162,9 +162,10 @@ function createWindow() {
     minWidth:        1000,
     minHeight:       700,
     backgroundColor: '#080b12',
+    // frame: false on ALL platforms so CSS drag region works everywhere
+    frame:           false,
     titleBarStyle:   process.platform === 'darwin' ? 'hiddenInset' : 'hidden',
     trafficLightPosition: { x: 16, y: 12 },
-    frame: process.platform !== 'darwin',
     webPreferences: {
       preload:          path.join(__dirname, 'preload.js'),
       nodeIntegration:  false,
