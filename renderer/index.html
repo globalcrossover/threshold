@@ -9,11 +9,41 @@
     ::-webkit-scrollbar { display: none; }
     * { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* ── Window Drag Region ── */
-    /* Full tab bar is draggable — only interactive children are excluded */
-    #tab-bar { -webkit-app-region: drag; }
+    /* ── Window Drag Region ──────────────────────────────
+       CSS -webkit-app-region removed entirely.
+       Window dragging is now handled by JS ipcMain approach
+       in browser.js (initWindowDrag). This works on both
+       Electron 13 (Mac) and all Windows builds.
+    ─────────────────────────────────────────────────── */
+    #tab-bar,
     #tab-bar button, .tab, #new-tab-btn, #win-controls, .wc-btn {
       -webkit-app-region: no-drag;
+    }
+
+    /* ── Tab Bar — horizontal scroll when tabs overflow ──
+       #tab-bar-inner is flex and takes remaining width
+       after the THRESHOLD label (defined in style.css).
+       #tabs-container scrolls horizontally; scrollbar is
+       invisible (hidden via ::-webkit-scrollbar above).
+       #new-tab-btn stays pinned at the right end.
+    ─────────────────────────────────────────────────── */
+    #tab-bar-inner {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      align-items: center;
+    }
+    #tabs-container {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+      overflow-x: auto;
+      align-items: center;
+      scroll-behavior: smooth;
+    }
+    #new-tab-btn {
+      flex-shrink: 0;
     }
 
     /* ── Tab Drag Reorder ── */
@@ -34,6 +64,25 @@
       margin-right: 4px;
     }
     #day-mode-btn:hover { border-color: rgba(232,160,32,0.5); color: #e8a020; }
+
+    /* ── 4-Column Card Grid ──────────────────────────────
+       12 cards = 4 columns × 3 rows (was 3 × 4)
+    ─────────────────────────────────────────────────── */
+    .card-grid {
+      grid-template-columns: repeat(4, 1fr) !important;
+    }
+
+    /* ── Windows Title Bar Fix ───────────────────────────
+       On Windows with frame:false the window top edge is
+       flush with y=0. Add a small top pad so the THRESHOLD
+       label and tab content are not clipped.
+    ─────────────────────────────────────────────────── */
+    body.win32 #tab-bar {
+      padding-top: 6px;
+    }
+    body.win32 #tab-bar-inner {
+      padding-top: 0;
+    }
 
     /* ── Day Mode ── */
     body.day-mode {
@@ -259,7 +308,7 @@
                  spellcheck="false" autocomplete="off" />
         </div>
 
-        <!-- GC Cards (collapsible) -->
+        <!-- GC Cards (collapsible, 4-column grid) -->
         <div class="gc-section">
           <div class="gc-section-header">
             <span class="gc-section-label">&#127758; Global Crossover</span>
