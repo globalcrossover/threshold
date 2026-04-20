@@ -9,48 +9,41 @@
     ::-webkit-scrollbar { display: none; }
     * { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* ── Window Drag — CSS approach removed, JS handles it ── */
+    /* ── Tab bar height ── increase from 36px to 44px */
+    :root { --tab-h: 44px; }
+
+    /* ── Neutralize ALL CSS drag regions so JS drag works everywhere ──
+       style.css sets -webkit-app-region: drag on #tab-bar and ::before.
+       We override every one of them here so mouse events reach JS.       */
     #tab-bar,
-    #tab-bar button, .tab, #new-tab-btn, #win-controls, .wc-btn {
-      -webkit-app-region: no-drag;
-    }
-
-    /* ── Tab Bar — scrollable with ‹ › arrow buttons ────────
-       #tab-bar-inner: flex row, takes all width after label
-       #tabs-container: scrolls horizontally, scrollbar hidden
-       #tab-scroll-left / right: appear only when tabs overflow
-    ──────────────────────────────────────────────────────── */
-    #tab-bar-inner {
-      display: flex;
-      flex: 1;
-      min-width: 0;
-      overflow: hidden;
-      align-items: center;
-    }
-    #tabs-container {
-      display: flex;
-      flex: 1;
-      min-width: 0;
-      overflow-x: auto;
-      align-items: center;
-    }
-    #new-tab-btn {
-      flex-shrink: 0;
-    }
-
-    /* Scroll arrows — hidden by default, JS shows them */
+    #tab-bar::before,
+    #tab-bar-inner,
+    #tabs-container,
+    #new-tab-btn,
+    #win-controls,
+    .wc-btn,
+    .tab,
     .tab-scroll-btn {
-      display: none;           /* JS sets to '' when needed */
+      -webkit-app-region: no-drag !important;
+    }
+
+    /* ── Tab scroll arrow buttons ──────────────────────────────────
+       These live OUTSIDE #tab-bar-inner (which is what scrolls).
+       They stay fixed while the tab strip scrolls behind them.
+       Hidden by default; JS shows them when tabs overflow.         */
+    .tab-scroll-btn {
+      display: none;
       flex-shrink: 0;
       background: none;
       border: none;
       color: rgba(232,160,32,0.55);
-      font-size: 18px;
+      font-size: 20px;
       line-height: 1;
-      padding: 0 5px;
+      padding: 0 6px;
+      height: 100%;
       cursor: pointer;
       transition: color 0.15s;
-      -webkit-app-region: no-drag;
+      align-self: center;
     }
     .tab-scroll-btn:hover { color: #e8a020; }
 
@@ -73,8 +66,8 @@
     }
     #day-mode-btn:hover { border-color: rgba(232,160,32,0.5); color: #e8a020; }
 
-    /* ── Windows Title Bar Fix ── */
-    body.win32 #tab-bar { padding-top: 6px; }
+    /* ── Windows fix ── */
+    body.win32 #tab-bar { padding-top: 4px; }
 
     /* ── Day Mode ── */
     body.day-mode {
@@ -258,13 +251,16 @@
 
 <div id="shell">
 
+  <!-- Tab bar: scroll arrows are SIBLINGS of #tab-bar-inner, not children.
+       #tab-bar-inner is what scrolls (overflow-x: auto in style.css).
+       Arrows stay fixed; the tab strip scrolls behind them.             -->
   <div id="tab-bar">
+    <button id="tab-scroll-left"  class="tab-scroll-btn">&#8249;</button>
     <div id="tab-bar-inner">
-      <button id="tab-scroll-left"  class="tab-scroll-btn">&#8249;</button>
       <div id="tabs-container"></div>
-      <button id="tab-scroll-right" class="tab-scroll-btn">&#8250;</button>
       <button id="new-tab-btn" title="New tab">+</button>
     </div>
+    <button id="tab-scroll-right" class="tab-scroll-btn">&#8250;</button>
     <div id="win-controls">
       <button class="wc-btn" id="wc-min">&#8211;</button>
       <button class="wc-btn" id="wc-max">&#9633;</button>
@@ -304,7 +300,7 @@
                  spellcheck="false" autocomplete="off" />
         </div>
 
-        <!-- GC Cards (collapsible) — grid columns set to 4 by JS in browser.js -->
+        <!-- GC Cards — grid switched to display:grid + 4 cols by applyCardGrid() in browser.js -->
         <div class="gc-section">
           <div class="gc-section-header">
             <span class="gc-section-label">&#127758; Global Crossover</span>
@@ -335,13 +331,9 @@
           <div class="user-card-grid"></div>
         </div>
 
-        <!-- Bookmarks View -->
         <div class="bookmarks-view" style="display:none;"></div>
-
-        <!-- VAULTit View -->
         <div class="vault-view" style="display:none;"></div>
 
-        <!-- View Toggle -->
         <div class="view-toggle">
           <button class="vt-btn active" data-view="home">&#8962;&nbsp; Home</button>
           <button class="vt-btn" data-view="bookmarks">&#9733;&nbsp; Bookmarks</button>
