@@ -1,4 +1,4 @@
-// Threshold Browser v0.3.9 — Tab Manager + Bookmarks + Search + VAULTit + Day Mode
+// Threshold Browser v0.4.0 — Tab Manager + Bookmarks + Search + VAULTit + Day Mode + Window Drag
 // Global Crossover
 
 'use strict'
@@ -117,15 +117,10 @@ function migrateOldBookmarks(old) {
 
 function getDefaultBookmarks() {
   return [
-    { id: 'df1', type: 'folder', name: 'Islamic', open: false, links: [
-      { id: 'df1l1', type: 'link', name: 'The Quran', url: 'https://www.themajesticreading.com/read' },
-      { id: 'df1l2', type: 'link', name: 'The Quran Network', url: 'https://thequrannetwork.com' }
-    ]},
-    { id: 'df2', type: 'folder', name: 'Work', open: false, links: [
-      { id: 'df2l1', type: 'link', name: 'GC Admin', url: 'https://globalcrossover.com/admin' },
-      { id: 'df2l2', type: 'link', name: 'Make A Vid', url: 'https://makeavid.com' }
-    ]},
-    { id: 'df3', type: 'folder', name: 'Research', open: false, links: [] }
+    { id: 'df1', type: 'folder', name: 'Faith',  open: false, links: [] },
+    { id: 'df2', type: 'folder', name: 'Family', open: false, links: [] },
+    { id: 'df3', type: 'folder', name: 'Work',   open: false, links: [] },
+    { id: 'df4', type: 'folder', name: 'Peace',  open: false, links: [] },
   ]
 }
 
@@ -730,7 +725,7 @@ function cleanupTab(id) {
 }
 
 // ─────────────────────────────────────────────────────
-// TAB BAR (drag-to-reorder)
+// TAB BAR (drag-to-reorder + scroll active into view)
 // ─────────────────────────────────────────────────────
 
 var dragSrcId = null
@@ -766,6 +761,12 @@ function renderTabBar() {
 
       $tabsContainer.appendChild(el)
     })(tabs[i])
+  }
+
+  // Scroll active tab into view when tab bar overflows
+  var activeEl = $tabsContainer.querySelector('.tab.active')
+  if (activeEl) {
+    activeEl.scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'nearest' })
   }
 }
 
@@ -841,3 +842,51 @@ loadDayMode()
 loadBookmarks()
 loadUserCards()
 loadVault().then(function() { createTab(HOME, true) })
+
+// ─────────────────────────────────────────────────────
+// WINDOW DRAG — JS ipcMain approach (replaces CSS drag region)
+// Works on Electron 13 Mac + all Windows builds
+// ─────────────────────────────────────────────────────
+;(function initWindowDrag() {
+  var $bar    = document.getElementById('tab-bar')
+  var dragging = false
+  var sMouseX  = 0
+  var sMouseY  = 0
+  var sWinX    = 0
+  var sWinY    = 0
+
+  $bar.addEventListener('mousedown', async function(e) {
+    if (e.button !== 0) return
+
+    // Only drag from empty bar space — not from tabs, buttons, or inputs
+    var node = e.target
+    while (node && node !== $bar) {
+      if (node.classList.contains('tab') ||
+          node.tagName === 'BUTTON'      ||
+          node.tagName === 'INPUT'       ||
+          node.id === 'tabs-container') return
+      node = node.parentElement
+    }
+
+    // Snapshot mouse position, then fetch window position async
+    sMouseX = e.screenX
+    sMouseY = e.screenY
+    try {
+      var pos = await window.threshold.getWindowPos()
+      sWinX   = pos[0]
+      sWinY   = pos[1]
+      dragging = true
+    } catch(err) { /* ignore */ }
+  })
+
+  document.addEventListener('mousemove', function(e) {
+    if (!dragging) return
+    window.threshold.setWindowPos(
+      sWinX + (e.screenX - sMouseX),
+      sWinY + (e.screenY - sMouseY)
+    )
+  })
+
+  document.addEventListener('mouseup',    function() { dragging = false })
+  document.addEventListener('mouseleave', function() { dragging = false })
+})()
