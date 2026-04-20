@@ -42,8 +42,8 @@ function updateTabScrollBtns() {
   if (!$tabScrollLeft || !$tabScrollRight || !$tabBarInner) return
   var hasLeft  = $tabBarInner.scrollLeft > 2
   var hasRight = $tabBarInner.scrollLeft + $tabBarInner.clientWidth < $tabBarInner.scrollWidth - 2
-  $tabScrollLeft.style.display  = hasLeft  ? '' : 'none'
-  $tabScrollRight.style.display = hasRight ? '' : 'none'
+  $tabScrollLeft.style.display  = hasLeft  ? 'flex' : 'none'
+  $tabScrollRight.style.display = hasRight ? 'flex' : 'none'
 }
 
 if ($tabScrollLeft) {
