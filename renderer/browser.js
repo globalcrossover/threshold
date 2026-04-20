@@ -10,23 +10,54 @@ var UC_KEY        = 'threshold_user_cards_v1'
 var GC_COLLAPSE   = 'threshold_gc_collapsed'
 var DAY_MODE_KEY  = 'threshold_day_mode'
 
-var $contentArea   = document.getElementById('content-area')
-var $tabsContainer = document.getElementById('tabs-container')
-var $newTabBtn     = document.getElementById('new-tab-btn')
-var $addressBar    = document.getElementById('address-bar')
-var $securityIcon  = document.getElementById('security-icon')
-var $backBtn       = document.getElementById('back-btn')
-var $forwardBtn    = document.getElementById('forward-btn')
-var $reloadBtn     = document.getElementById('reload-btn')
-var $homeBtn       = document.getElementById('home-btn')
-var $bookmarkBtn   = document.getElementById('bookmark-btn')
-var $dayModeBtn    = document.getElementById('day-mode-btn')
+var $contentArea    = document.getElementById('content-area')
+var $tabsContainer  = document.getElementById('tabs-container')
+var $newTabBtn      = document.getElementById('new-tab-btn')
+var $addressBar     = document.getElementById('address-bar')
+var $securityIcon   = document.getElementById('security-icon')
+var $backBtn        = document.getElementById('back-btn')
+var $forwardBtn     = document.getElementById('forward-btn')
+var $reloadBtn      = document.getElementById('reload-btn')
+var $homeBtn        = document.getElementById('home-btn')
+var $bookmarkBtn    = document.getElementById('bookmark-btn')
+var $dayModeBtn     = document.getElementById('day-mode-btn')
+var $tabScrollLeft  = document.getElementById('tab-scroll-left')
+var $tabScrollRight = document.getElementById('tab-scroll-right')
 
 var tabs      = []
 var activeId  = null
 var tabSeq    = 0
 var bookmarks = []
 var userCards = []
+
+// ─────────────────────────────────────────────────────
+// TAB SCROLL ARROWS
+// ‹ and › buttons appear only when tabs are hidden on
+// that side. Hidden by default, shown via JS.
+// ─────────────────────────────────────────────────────
+
+function updateTabScrollBtns() {
+  if (!$tabScrollLeft || !$tabScrollRight) return
+  var el       = $tabsContainer
+  var hasLeft  = el.scrollLeft > 2
+  var hasRight = el.scrollLeft + el.clientWidth < el.scrollWidth - 2
+  $tabScrollLeft.style.display  = hasLeft  ? '' : 'none'
+  $tabScrollRight.style.display = hasRight ? '' : 'none'
+}
+
+if ($tabScrollLeft) {
+  $tabScrollLeft.addEventListener('click', function() {
+    $tabsContainer.scrollBy({ left: -220, behavior: 'smooth' })
+  })
+}
+if ($tabScrollRight) {
+  $tabScrollRight.addEventListener('click', function() {
+    $tabsContainer.scrollBy({ left: 220, behavior: 'smooth' })
+  })
+}
+if ($tabsContainer) {
+  $tabsContainer.addEventListener('scroll', updateTabScrollBtns)
+}
 
 // ─────────────────────────────────────────────────────
 // DAY MODE
@@ -623,6 +654,12 @@ function bindSearchInputEvent(container, tabId) {
 // TAB MANAGEMENT
 // ─────────────────────────────────────────────────────
 
+function applyCardGrid(homePage) {
+  // Apply 4-column grid directly as inline style — wins over any external CSS
+  var grid = homePage.querySelector('.card-grid')
+  if (grid) grid.style.gridTemplateColumns = 'repeat(4, 1fr)'
+}
+
 function createTab(url, activate) {
   var id       = 'tab_' + (++tabSeq)
   var resolved = resolveUrl(url || HOME)
@@ -632,6 +669,7 @@ function createTab(url, activate) {
 
   initGCSection(homePage)
   initUserSection(homePage)
+  applyCardGrid(homePage)
 
   var cards = homePage.querySelectorAll('.brand-card')
   for (var c = 0; c < cards.length; c++) {
@@ -725,7 +763,7 @@ function cleanupTab(id) {
 }
 
 // ─────────────────────────────────────────────────────
-// TAB BAR (drag-to-reorder + scroll active into view)
+// TAB BAR
 // ─────────────────────────────────────────────────────
 
 var dragSrcId = null
@@ -763,11 +801,10 @@ function renderTabBar() {
     })(tabs[i])
   }
 
-  // Scroll active tab into view when tab bar overflows
+  // Scroll active tab into view, then update ‹ › arrow visibility
   var activeEl = $tabsContainer.querySelector('.tab.active')
-  if (activeEl) {
-    activeEl.scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'nearest' })
-  }
+  if (activeEl) activeEl.scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'nearest' })
+  requestAnimationFrame(updateTabScrollBtns)
 }
 
 function setButtons(back, forward) { $backBtn.disabled=!back; $forwardBtn.disabled=!forward }
@@ -844,11 +881,11 @@ loadUserCards()
 loadVault().then(function() { createTab(HOME, true) })
 
 // ─────────────────────────────────────────────────────
-// WINDOW DRAG — JS ipcMain approach (replaces CSS drag region)
+// WINDOW DRAG — JS ipcMain approach
 // Works on Electron 13 Mac + all Windows builds
 // ─────────────────────────────────────────────────────
 ;(function initWindowDrag() {
-  var $bar    = document.getElementById('tab-bar')
+  var $bar     = document.getElementById('tab-bar')
   var dragging = false
   var sMouseX  = 0
   var sMouseY  = 0
@@ -857,8 +894,6 @@ loadVault().then(function() { createTab(HOME, true) })
 
   $bar.addEventListener('mousedown', async function(e) {
     if (e.button !== 0) return
-
-    // Only drag from empty bar space — not from tabs, buttons, or inputs
     var node = e.target
     while (node && node !== $bar) {
       if (node.classList.contains('tab') ||
@@ -867,14 +902,12 @@ loadVault().then(function() { createTab(HOME, true) })
           node.id === 'tabs-container') return
       node = node.parentElement
     }
-
-    // Snapshot mouse position, then fetch window position async
     sMouseX = e.screenX
     sMouseY = e.screenY
     try {
-      var pos = await window.threshold.getWindowPos()
-      sWinX   = pos[0]
-      sWinY   = pos[1]
+      var pos  = await window.threshold.getWindowPos()
+      sWinX    = pos[0]
+      sWinY    = pos[1]
       dragging = true
     } catch(err) { /* ignore */ }
   })
