@@ -1,4 +1,4 @@
-// Threshold Browser v0.4.0 — Tab Manager + Bookmarks + Search + VAULTit + Day Mode + Window Drag
+// Threshold Browser v0.4.1 — Tab Manager + Bookmarks + Search + VAULTit + Day Mode + Window Drag
 // Global Crossover
 
 'use strict'
@@ -11,6 +11,8 @@ var GC_COLLAPSE   = 'threshold_gc_collapsed'
 var DAY_MODE_KEY  = 'threshold_day_mode'
 
 var $contentArea    = document.getElementById('content-area')
+var $tabBar         = document.getElementById('tab-bar')
+var $tabBarInner    = document.getElementById('tab-bar-inner')   // ← this is what scrolls
 var $tabsContainer  = document.getElementById('tabs-container')
 var $newTabBtn      = document.getElementById('new-tab-btn')
 var $addressBar     = document.getElementById('address-bar')
@@ -32,31 +34,30 @@ var userCards = []
 
 // ─────────────────────────────────────────────────────
 // TAB SCROLL ARROWS
-// ‹ and › buttons appear only when tabs are hidden on
-// that side. Hidden by default, shown via JS.
+// Arrows are siblings of #tab-bar-inner in the HTML.
+// They control #tab-bar-inner.scrollLeft (the scrolling element).
 // ─────────────────────────────────────────────────────
 
 function updateTabScrollBtns() {
-  if (!$tabScrollLeft || !$tabScrollRight) return
-  var el       = $tabsContainer
-  var hasLeft  = el.scrollLeft > 2
-  var hasRight = el.scrollLeft + el.clientWidth < el.scrollWidth - 2
+  if (!$tabScrollLeft || !$tabScrollRight || !$tabBarInner) return
+  var hasLeft  = $tabBarInner.scrollLeft > 2
+  var hasRight = $tabBarInner.scrollLeft + $tabBarInner.clientWidth < $tabBarInner.scrollWidth - 2
   $tabScrollLeft.style.display  = hasLeft  ? '' : 'none'
   $tabScrollRight.style.display = hasRight ? '' : 'none'
 }
 
 if ($tabScrollLeft) {
   $tabScrollLeft.addEventListener('click', function() {
-    $tabsContainer.scrollBy({ left: -220, behavior: 'smooth' })
+    $tabBarInner.scrollBy({ left: -220, behavior: 'smooth' })
   })
 }
 if ($tabScrollRight) {
   $tabScrollRight.addEventListener('click', function() {
-    $tabsContainer.scrollBy({ left: 220, behavior: 'smooth' })
+    $tabBarInner.scrollBy({ left: 220, behavior: 'smooth' })
   })
 }
-if ($tabsContainer) {
-  $tabsContainer.addEventListener('scroll', updateTabScrollBtns)
+if ($tabBarInner) {
+  $tabBarInner.addEventListener('scroll', updateTabScrollBtns)
 }
 
 // ─────────────────────────────────────────────────────
@@ -281,6 +282,23 @@ function initGCSection(homePage) {
       collapsed ? others[i].classList.add('collapsed') : others[i].classList.remove('collapsed')
     }
   })
+}
+
+// ─────────────────────────────────────────────────────
+// CARD GRID — 4 columns
+// style.css uses display:flex + fixed card widths (186px each).
+// We switch to display:grid so column count is controlled here.
+// 4 cols × 186px + 3 gaps × 12px = 780px total width.
+// ─────────────────────────────────────────────────────
+
+function applyCardGrid(homePage) {
+  var grid = homePage.querySelector('.card-grid')
+  if (!grid) return
+  grid.style.display              = 'grid'
+  grid.style.gridTemplateColumns  = 'repeat(4, 186px)'
+  grid.style.gap                  = '12px'
+  grid.style.width                = '780px'
+  grid.style.justifyContent       = ''
 }
 
 // ─────────────────────────────────────────────────────
@@ -596,13 +614,11 @@ async function showSearchPage(tab, query) {
   tab.title = query + ' \u2014 Threshold'
   if (activeId === tab.id) { $addressBar.value = query; setSecurityIcon(null); setButtons(false, false) }
   renderTabBar()
-
   tab.searchPage.innerHTML =
     '<div class="search-page-inner"><div class="search-header"><div class="search-logo">THRESHOLD</div>' +
     '<div class="search-input-wrap"><input class="search-page-input" type="text" value="' + escHtml(query) + '" /></div>' +
     '</div><div class="search-loading">Searching\u2026</div></div>'
   bindSearchInputEvent(tab.searchPage, tab.id)
-
   try {
     var result = await window.threshold.search(query)
     if (result.ok) { renderSearchResults(tab.searchPage, query, result.results) }
@@ -654,12 +670,6 @@ function bindSearchInputEvent(container, tabId) {
 // TAB MANAGEMENT
 // ─────────────────────────────────────────────────────
 
-function applyCardGrid(homePage) {
-  // Apply 4-column grid directly as inline style — wins over any external CSS
-  var grid = homePage.querySelector('.card-grid')
-  if (grid) grid.style.gridTemplateColumns = 'repeat(4, 1fr)'
-}
-
 function createTab(url, activate) {
   var id       = 'tab_' + (++tabSeq)
   var resolved = resolveUrl(url || HOME)
@@ -695,7 +705,6 @@ function createTab(url, activate) {
 
 function createWebview(tab) {
   var wv = document.createElement('webview'); wv.id='wv_'+tab.id; wv.src=tab.url; wv.setAttribute('allowpopups','')
-
   wv.addEventListener('did-start-loading', function() { tab.loading=true; if(activeId===tab.id) $reloadBtn.innerHTML='&#10005;'; renderTabBar() })
   wv.addEventListener('did-stop-loading',  function() { tab.loading=false; if(activeId===tab.id){$reloadBtn.innerHTML='&#8635;';setButtons(wv.canGoBack(),wv.canGoForward())} renderTabBar() })
   wv.addEventListener('did-navigate', function(e) { tab.url=e.url; if(activeId===tab.id){$addressBar.value=e.url;setSecurityIcon(e.url);setButtons(wv.canGoBack(),wv.canGoForward())} renderTabBar() })
@@ -708,7 +717,6 @@ function createWebview(tab) {
       window.threshold.showContextMenu({ linkURL:e.params.linkURL||'', linkText:e.params.linkText||'', selectionText:e.params.selectionText||'', x:e.params.x||0, y:e.params.y||0 })
     }
   })
-
   $contentArea.appendChild(wv); tab.webview=wv; return wv
 }
 
@@ -717,7 +725,6 @@ function activateTab(id) {
   document.querySelectorAll('webview').forEach(function(v) { v.classList.remove('active') })
   document.querySelectorAll('.home-page').forEach(function(h) { h.classList.remove('active') })
   document.querySelectorAll('.search-page').forEach(function(s) { s.classList.remove('active') })
-
   if (isHome(tab.url)) {
     tab.homePage.classList.add('active'); $addressBar.value=''; $addressBar.placeholder='Search or enter address\u2026'; setButtons(false,false); setSecurityIcon(null)
   } else if (isSearch(tab.url)) {
@@ -735,13 +742,11 @@ function navigateTab(id, raw) {
   tab.homePage.classList.remove('active')
   if (tab.webview)    tab.webview.classList.remove('active')
   if (tab.searchPage) tab.searchPage.classList.remove('active')
-
   if (isHome(url)) {
     tab.url=HOME; tab.title='New Tab'; tab.favicon=null; tab.homePage.classList.add('active')
     if(id===activeId){$addressBar.value='';setButtons(false,false);setSecurityIcon(null)} renderTabBar(); return
   }
   if (isSearch(url)) { showSearchPage(tab, getSearchQuery(url)); return }
-
   tab.url=url
   if (!tab.webview) { createWebview(tab) } else { tab.webview.src=url }
   if (id===activeId) { tab.webview.classList.add('active'); $addressBar.value=url; setSecurityIcon(url); setButtons(false,false) }
@@ -796,12 +801,11 @@ function renderTabBar() {
         if(si===-1||di===-1) return
         var moved=tabs.splice(si,1)[0]; tabs.splice(di,0,moved); renderTabBar()
       })
-
       $tabsContainer.appendChild(el)
     })(tabs[i])
   }
 
-  // Scroll active tab into view, then update ‹ › arrow visibility
+  // Scroll active tab into view within #tab-bar-inner
   var activeEl = $tabsContainer.querySelector('.tab.active')
   if (activeEl) activeEl.scrollIntoView({ behavior: 'instant', block: 'nearest', inline: 'nearest' })
   requestAnimationFrame(updateTabScrollBtns)
@@ -881,25 +885,30 @@ loadUserCards()
 loadVault().then(function() { createTab(HOME, true) })
 
 // ─────────────────────────────────────────────────────
-// WINDOW DRAG — JS ipcMain approach
-// Works on Electron 13 Mac + all Windows builds
+// WINDOW DRAG
+// style.css sets -webkit-app-region:drag on #tab-bar and
+// its ::before pseudo-element. We also override via CSS
+// in index.html. Belt + suspenders: force it off via JS too.
+// Then implement full JS drag targeting the whole tab bar.
 // ─────────────────────────────────────────────────────
 ;(function initWindowDrag() {
-  var $bar     = document.getElementById('tab-bar')
+  // Force CSS drag region off so mouse events reach JS
+  if ($tabBar) $tabBar.style.webkitAppRegion = 'no-drag'
+
   var dragging = false
   var sMouseX  = 0
   var sMouseY  = 0
   var sWinX    = 0
   var sWinY    = 0
 
-  $bar.addEventListener('mousedown', async function(e) {
+  $tabBar.addEventListener('mousedown', async function(e) {
     if (e.button !== 0) return
+    // Don't drag when clicking on interactive elements
     var node = e.target
-    while (node && node !== $bar) {
+    while (node && node !== $tabBar) {
       if (node.classList.contains('tab') ||
           node.tagName === 'BUTTON'      ||
-          node.tagName === 'INPUT'       ||
-          node.id === 'tabs-container') return
+          node.tagName === 'INPUT') return
       node = node.parentElement
     }
     sMouseX = e.screenX
@@ -909,7 +918,7 @@ loadVault().then(function() { createTab(HOME, true) })
       sWinX    = pos[0]
       sWinY    = pos[1]
       dragging = true
-    } catch(err) { /* ignore */ }
+    } catch(err) { /* getWindowPos not available */ }
   })
 
   document.addEventListener('mousemove', function(e) {
