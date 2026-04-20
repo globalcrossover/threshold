@@ -9,24 +9,17 @@
     ::-webkit-scrollbar { display: none; }
     * { -ms-overflow-style: none; scrollbar-width: none; }
 
-    /* ── Window Drag Region ──────────────────────────────
-       CSS -webkit-app-region removed entirely.
-       Window dragging is now handled by JS ipcMain approach
-       in browser.js (initWindowDrag). This works on both
-       Electron 13 (Mac) and all Windows builds.
-    ─────────────────────────────────────────────────── */
+    /* ── Window Drag — CSS approach removed, JS handles it ── */
     #tab-bar,
     #tab-bar button, .tab, #new-tab-btn, #win-controls, .wc-btn {
       -webkit-app-region: no-drag;
     }
 
-    /* ── Tab Bar — horizontal scroll when tabs overflow ──
-       #tab-bar-inner is flex and takes remaining width
-       after the THRESHOLD label (defined in style.css).
-       #tabs-container scrolls horizontally; scrollbar is
-       invisible (hidden via ::-webkit-scrollbar above).
-       #new-tab-btn stays pinned at the right end.
-    ─────────────────────────────────────────────────── */
+    /* ── Tab Bar — scrollable with ‹ › arrow buttons ────────
+       #tab-bar-inner: flex row, takes all width after label
+       #tabs-container: scrolls horizontally, scrollbar hidden
+       #tab-scroll-left / right: appear only when tabs overflow
+    ──────────────────────────────────────────────────────── */
     #tab-bar-inner {
       display: flex;
       flex: 1;
@@ -40,17 +33,32 @@
       min-width: 0;
       overflow-x: auto;
       align-items: center;
-      scroll-behavior: smooth;
     }
     #new-tab-btn {
       flex-shrink: 0;
     }
 
+    /* Scroll arrows — hidden by default, JS shows them */
+    .tab-scroll-btn {
+      display: none;           /* JS sets to '' when needed */
+      flex-shrink: 0;
+      background: none;
+      border: none;
+      color: rgba(232,160,32,0.55);
+      font-size: 18px;
+      line-height: 1;
+      padding: 0 5px;
+      cursor: pointer;
+      transition: color 0.15s;
+      -webkit-app-region: no-drag;
+    }
+    .tab-scroll-btn:hover { color: #e8a020; }
+
     /* ── Tab Drag Reorder ── */
     .tab.dragging  { opacity: 0.35; }
     .tab.drag-over { border-left: 2px solid #e8a020 !important; }
 
-    /* ── Day Mode Toggle — in nav bar, always visible ── */
+    /* ── Day Mode Toggle ── */
     #day-mode-btn {
       background: none;
       border: 1px solid rgba(242,234,216,0.2);
@@ -65,24 +73,8 @@
     }
     #day-mode-btn:hover { border-color: rgba(232,160,32,0.5); color: #e8a020; }
 
-    /* ── 4-Column Card Grid ──────────────────────────────
-       12 cards = 4 columns × 3 rows (was 3 × 4)
-    ─────────────────────────────────────────────────── */
-    .card-grid {
-      grid-template-columns: repeat(4, 1fr) !important;
-    }
-
-    /* ── Windows Title Bar Fix ───────────────────────────
-       On Windows with frame:false the window top edge is
-       flush with y=0. Add a small top pad so the THRESHOLD
-       label and tab content are not clipped.
-    ─────────────────────────────────────────────────── */
-    body.win32 #tab-bar {
-      padding-top: 6px;
-    }
-    body.win32 #tab-bar-inner {
-      padding-top: 0;
-    }
+    /* ── Windows Title Bar Fix ── */
+    body.win32 #tab-bar { padding-top: 6px; }
 
     /* ── Day Mode ── */
     body.day-mode {
@@ -105,6 +97,8 @@
     body.day-mode .nav-btn:hover { color: var(--dm-accent); }
     body.day-mode #day-mode-btn  { border-color: rgba(184,110,0,0.3); color: rgba(26,20,16,0.6); }
     body.day-mode #day-mode-btn:hover { border-color: var(--dm-accent); color: var(--dm-accent); }
+    body.day-mode .tab-scroll-btn { color: rgba(184,110,0,0.55); }
+    body.day-mode .tab-scroll-btn:hover { color: var(--dm-accent); }
     body.day-mode .home-page    { background: var(--dm-bg); }
     body.day-mode .ambient-glow { opacity: 0.3; }
     body.day-mode .threshold-logo { -webkit-text-fill-color: var(--dm-accent) !important; background: none !important; }
@@ -266,7 +260,9 @@
 
   <div id="tab-bar">
     <div id="tab-bar-inner">
+      <button id="tab-scroll-left"  class="tab-scroll-btn">&#8249;</button>
       <div id="tabs-container"></div>
+      <button id="tab-scroll-right" class="tab-scroll-btn">&#8250;</button>
       <button id="new-tab-btn" title="New tab">+</button>
     </div>
     <div id="win-controls">
@@ -308,7 +304,7 @@
                  spellcheck="false" autocomplete="off" />
         </div>
 
-        <!-- GC Cards (collapsible, 4-column grid) -->
+        <!-- GC Cards (collapsible) — grid columns set to 4 by JS in browser.js -->
         <div class="gc-section">
           <div class="gc-section-header">
             <span class="gc-section-label">&#127758; Global Crossover</span>
